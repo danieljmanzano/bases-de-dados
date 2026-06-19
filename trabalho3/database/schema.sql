@@ -1,8 +1,40 @@
 -- Arquivo com o esquema do banco de dados
 
 
+-- Limpeza do banco de dados (ordem de exclusão respeitando as FKs)
+-- Toda vez que o script é executado, isso garante que o banco de dados esteja limpo para a criação das tabelas
+--------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS Lote_Consumo_Humano;
+DROP TABLE IF EXISTS Lote_Consumo_Animal;
+DROP TABLE IF EXISTS Lote_Compostagem;
+
+DROP TABLE IF EXISTS Centro_Beneficiamento_Distribuicao;
+DROP TABLE IF EXISTS Armazem;
+DROP TABLE IF EXISTS Centro_Compostagem;
+
+DROP TABLE IF EXISTS Requisita;
+DROP TABLE IF EXISTS Lote_de_Entrega;
+DROP TABLE IF EXISTS Solicitacao_de_Aquisicao;
+
+DROP TABLE IF EXISTS Doacao;
+DROP TABLE IF EXISTS Titular;
+
+DROP TABLE IF EXISTS Lote_de_Produto;
+DROP TABLE IF EXISTS Transporte;
+DROP TABLE IF EXISTS Funcionario;
+
+DROP TABLE IF EXISTS Centro_Logistico;
+DROP TABLE IF EXISTS Conta_Bancaria;
+DROP TABLE IF EXISTS Filantropo;
+DROP TABLE IF EXISTS Beneficiario;
+DROP TABLE IF EXISTS Transportadora;
+DROP TABLE IF EXISTS Produtor_Rural;
+DROP TABLE IF EXISTS Produto;
+--------------------------------------------------------------------------------------------
+
+
 -- Tabelas que não possuem chaves estrangeiras
-----------------------------------------------
+--------------------------------------------------------------------------------------------
 CREATE TABLE Produto (
     nome   VARCHAR(50)    NOT NULL,
     tipo   VARCHAR(50)    NOT NULL,
@@ -10,13 +42,14 @@ CREATE TABLE Produto (
         PRIMARY KEY (nome)
 );
 
+
 CREATE TABLE Produtor_Rural (
     cpf_cnpj                VARCHAR(14)     NOT NULL, -- TODO: padronizar para cpf ou cnpj
     cep                     VARCHAR(8)      NOT NULL,
     nro                     INT             NOT NULL,
     rua                     VARCHAR(100)    NOT NULL,
     complemento             VARCHAR(100),
-    contato                 VARCHAR(50)     NOT NULL,
+    contato                 VARCHAR(50)     NOT NULL, -- telefone ou email, dependendo do tipo de contato fornecido
     nome                    VARCHAR(100)    NOT NULL,
     bool_compostagem        BOOLEAN DEFAULT FALSE,
     bool_consumo_animal     BOOLEAN DEFAULT FALSE,
@@ -34,6 +67,7 @@ CREATE TABLE Produtor_Rural (
     CONSTRAINT ck_produtor_rural_nro 
         CHECK (nro > 0) -- nro de endereço não pode ser negativo
 );
+
 
 CREATE TABLE Transportadora (
     cnpj                VARCHAR(14) NOT NULL,
@@ -59,6 +93,7 @@ CREATE TABLE Transportadora (
     CONSTRAINT ck_transportadora_nro 
         CHECK (nro > 0)
 );
+
 
 CREATE TABLE Beneficiario (
     cpf_cnpj                VARCHAR(14)     NOT NULL, -- TODO: padronizar para cpf ou cnpj
@@ -91,9 +126,10 @@ CREATE TABLE Beneficiario (
         ))
 );
 
+
 CREATE TABLE Filantropo (
     cpf_cnpj    VARCHAR(14)     NOT NULL, -- TODO: padronizar para cpf ou cnpj
-    contato     VARCHAR(50)     NOT NULL,
+    contato     VARCHAR(50)     NOT NULL, 
     nome        VARCHAR(100)    NOT NULL,
 
     CONSTRAINT pk_filantropo 
@@ -102,6 +138,7 @@ CREATE TABLE Filantropo (
     CONSTRAINT ck_filantropo_cnpj_len 
         CHECK (CHAR_LENGTH(cpf_cnpj) IN (11, 14))
 );
+
 
 CREATE TABLE Conta_Bancaria (
     id_conta        VARCHAR(15)     NOT NULL,
@@ -116,6 +153,7 @@ CREATE TABLE Conta_Bancaria (
     CONSTRAINT unq_conta_bancaria 
         UNIQUE (codigo_banco, nro_conta, nro_agencia)
 );
+
 
 CREATE TABLE Centro_Logistico (
     cep             VARCHAR(8)      NOT NULL,
@@ -133,10 +171,11 @@ CREATE TABLE Centro_Logistico (
         CHECK (nro > 0)
 );
 
-----------------------------------------------
+--------------------------------------------------------------------------------------------
 
--- Demais tabelas
-----------------------------------------------
+
+-- Tabelas com FKs
+--------------------------------------------------------------------------------------------
 CREATE TABLE Funcionario (
     cpf                     VARCHAR(11)     NOT NULL, 
     funcao                  VARCHAR(50)     NOT NULL, 
@@ -163,6 +202,7 @@ CREATE TABLE Funcionario (
         )) 
 );
 
+
 CREATE TABLE Transporte (
     placa_veiculo               VARCHAR(10)     NOT NULL,
     data_hora_coleta            TIMESTAMP       NOT NULL,
@@ -184,16 +224,21 @@ CREATE TABLE Transporte (
         ON DELETE RESTRICT, -- mantém o histórico de transportes mesmo que a transportadora seja removida
 
     CONSTRAINT fk_transporte_funcionario 
-        FOREIGN KEY (responsavel_distribuicao) REFERENCES Funcionario(cpf),  
+        FOREIGN KEY (responsavel_distribuicao) REFERENCES Funcionario(cpf)
+        ON DELETE SET NULL,
 
     CONSTRAINT fk_transporte_conta 
-        FOREIGN KEY (conta_pagamento) REFERENCES Conta_Bancaria(id_conta),
+        FOREIGN KEY (conta_pagamento) REFERENCES Conta_Bancaria(id_conta)
+        ON DELETE SET NULL,
 
     CONSTRAINT ck_transporte_custo 
         CHECK (custo >= 0),
 
     CONSTRAINT ck_transporte_tipo 
-        CHECK (UPPER(tipo) IN ('RECEBIMENTO', 'ENTREGA'))
+        CHECK (UPPER(tipo) IN (
+            'RECEBIMENTO', 
+            'ENTREGA'
+        ))
 );
 
 
@@ -221,19 +266,24 @@ CREATE TABLE Lote_de_Produto (
         UNIQUE (produto, produtor, data_hora_cadastro),
 
     CONSTRAINT fk_lote_produto_produto 
-        FOREIGN KEY (produto) REFERENCES Produto(nome),
+        FOREIGN KEY (produto) REFERENCES Produto(nome)
+        ON DELETE RESTRICT, -- mantém o histórico de lotes mesmo que o produto seja removido
 
     CONSTRAINT fk_lote_produto_produtor 
-        FOREIGN KEY (produtor) REFERENCES Produtor_Rural(cpf_cnpj),
+        FOREIGN KEY (produtor) REFERENCES Produtor_Rural(cpf_cnpj)
+        ON DELETE RESTRICT, -- mantém o histórico de lotes mesmo que o produtor seja removido
 
     CONSTRAINT fk_lote_produto_conta 
-        FOREIGN KEY (conta_bancaria) REFERENCES Conta_Bancaria(id_conta),
+        FOREIGN KEY (conta_bancaria) REFERENCES Conta_Bancaria(id_conta)
+        ON DELETE SET NULL, 
 
     CONSTRAINT fk_lote_produto_transporte 
-        FOREIGN KEY (placa_veiculo, data_hora_coleta) REFERENCES Transporte(placa_veiculo, data_hora_coleta),
+        FOREIGN KEY (placa_veiculo, data_hora_coleta) REFERENCES Transporte(placa_veiculo, data_hora_coleta)
+        ON DELETE SET NULL,
 
     CONSTRAINT fk_lote_produto_funcionario 
-        FOREIGN KEY (responsavel_classificacao) REFERENCES Funcionario(cpf),
+        FOREIGN KEY (responsavel_classificacao) REFERENCES Funcionario(cpf)
+        ON DELETE SET NULL,
 
     CONSTRAINT ck_lote_produto_quantidade 
         CHECK (quantidade > 0),
@@ -249,4 +299,238 @@ CREATE TABLE Lote_de_Produto (
         ))
 );
 
-----------------------------------------------
+
+CREATE TABLE Solicitacao_de_Aquisicao (
+    data_hora                   TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    beneficiario                VARCHAR(14)     NOT NULL,
+    declaracao_finalidade       VARCHAR(255)    NOT NULL,
+    validacao                   VARCHAR(50),
+    custo_parcial               DECIMAL(10, 2),
+    responsavel_regularizacao   VARCHAR(11),
+
+    CONSTRAINT pk_solicitacao_aquisicao 
+        PRIMARY KEY (data_hora, beneficiario),
+
+    CONSTRAINT fk_solicitacao_beneficiario 
+        FOREIGN KEY (beneficiario) REFERENCES Beneficiario(cpf_cnpj) 
+        ON DELETE CASCADE, -- por ser uma entidade fraca de beneficiário, deve ser apagada caso o beneficiário seja removido
+
+    CONSTRAINT fk_solicitacao_funcionario 
+        FOREIGN KEY (responsavel_regularizacao) REFERENCES Funcionario(cpf) 
+        ON DELETE SET NULL,
+
+    CONSTRAINT ck_solicitacao_custo 
+        CHECK (custo_parcial >= 0)
+);
+
+
+CREATE TABLE Lote_de_Entrega (
+    data_hora_aquisicao     TIMESTAMP       NOT NULL,
+    beneficiario            VARCHAR(14)     NOT NULL,
+    custo_total             DECIMAL(10, 2),
+    tamanho_total           DECIMAL(10, 2),
+    status_entrega          VARCHAR(50),
+    conta_pagamento         VARCHAR(15),
+    nota_fiscal             VARCHAR(50),
+    placa_veiculo           VARCHAR(10),
+    data_hora_coleta        TIMESTAMP,
+
+    CONSTRAINT pk_lote_de_entrega 
+        PRIMARY KEY (data_hora_aquisicao, beneficiario),
+
+    CONSTRAINT fk_lote_entrega_solicitacao 
+        FOREIGN KEY (data_hora_aquisicao, beneficiario) REFERENCES Solicitacao_de_Aquisicao(data_hora, beneficiario) 
+        ON DELETE CASCADE, -- por ser uma entidade fraca de solicitação, deve ser apagada caso a solicitação seja removida
+
+    CONSTRAINT fk_lote_entrega_conta 
+        FOREIGN KEY (conta_pagamento) REFERENCES Conta_Bancaria(id_conta) 
+        ON DELETE SET NULL,
+
+    CONSTRAINT fk_lote_entrega_transporte 
+        FOREIGN KEY (placa_veiculo, data_hora_coleta) REFERENCES Transporte(placa_veiculo, data_hora_coleta) 
+        ON DELETE SET NULL,
+
+    CONSTRAINT ck_lote_entrega_custo 
+        CHECK (custo_total >= 0),
+
+    CONSTRAINT ck_lote_entrega_tamanho 
+        CHECK (tamanho_total > 0),
+
+    CONSTRAINT ck_lote_entrega_status 
+        CHECK (UPPER(status_entrega) IN (
+            'PENDENTE', 
+            'EM ROTA', 
+            'ENTREGUE', 
+            'CANCELADA'
+        ))
+);
+
+
+CREATE TABLE Requisita (
+    data_hora_aquisicao     TIMESTAMP       NOT NULL,
+    beneficiario            VARCHAR(14)     NOT NULL,
+    lote                    VARCHAR(100)    NOT NULL,
+    porcao_lote             DECIMAL(10, 2)  NOT NULL, -- quantidade requisitada em kg ou unidades
+
+    CONSTRAINT pk_requisita 
+        PRIMARY KEY (data_hora_aquisicao, beneficiario, lote),
+
+    CONSTRAINT fk_requisita_solicitacao 
+        FOREIGN KEY (data_hora_aquisicao, beneficiario) REFERENCES Solicitacao_de_Aquisicao(data_hora, beneficiario) 
+        ON DELETE CASCADE, -- deve ser apagada caso a solicitação seja removida
+
+    CONSTRAINT fk_requisita_lote 
+        FOREIGN KEY (lote) REFERENCES Lote_de_Produto(id_lote) 
+        ON DELETE RESTRICT,
+
+    CONSTRAINT ck_requisita_porcao 
+        CHECK (porcao_lote > 0)
+);
+
+
+CREATE TABLE Titular (
+    id_conta                VARCHAR(15)     NOT NULL,
+    nome_titular            VARCHAR(100)    NOT NULL,
+
+    CONSTRAINT pk_titular 
+        PRIMARY KEY (id_conta, nome_titular),
+
+    CONSTRAINT fk_titular_conta 
+        FOREIGN KEY (id_conta) REFERENCES Conta_Bancaria(id_conta) 
+        ON DELETE CASCADE -- por ser uma tabela de atributo multivalorado, deve ser apagada caso a conta seja removida
+);
+
+
+CREATE TABLE Doacao (
+    nota_fiscal             VARCHAR(50)     NOT NULL,
+    id_conta                VARCHAR(15)     NOT NULL,
+    filantropo              VARCHAR(14)     NOT NULL,
+
+    CONSTRAINT pk_doacao 
+        PRIMARY KEY (nota_fiscal),
+
+    CONSTRAINT fk_doacao_conta 
+        FOREIGN KEY (id_conta) REFERENCES Conta_Bancaria(id_conta) 
+        ON DELETE RESTRICT,
+
+    CONSTRAINT fk_doacao_filantropo 
+        FOREIGN KEY (filantropo) REFERENCES Filantropo(cpf_cnpj) 
+        ON DELETE RESTRICT
+);
+
+--------------------------------------------------------------------------------------------
+
+
+-- Especializações de Centro Logístico
+--------------------------------------------------------------------------------------------
+CREATE TABLE Centro_Beneficiamento_Distribuicao (
+    cep             VARCHAR(8)      NOT NULL,
+    nro             INT             NOT NULL,
+    rua             VARCHAR(100)    NOT NULL,
+    complemento     VARCHAR(100),
+    contato         VARCHAR(50), 
+    capacidade      DECIMAL(10, 2),
+    ocupacao        DECIMAL(10, 2),
+
+    CONSTRAINT pk_centro_beneficiamento
+        PRIMARY KEY (cep, nro, rua),
+
+    CONSTRAINT fk_centro_beneficiamento_logistico
+        FOREIGN KEY (cep, nro, rua) REFERENCES Centro_Logistico(cep, nro, rua)
+        ON DELETE CASCADE -- por ser uma tabela de especialização, deve ser apagada caso o centro logístico seja removido
+                          -- o mesmo vale para as demais tabelas de especialização de centro logístico
+);
+
+CREATE TABLE Armazem (
+    cep             VARCHAR(8)      NOT NULL,
+    nro             INT             NOT NULL,
+    rua             VARCHAR(100)    NOT NULL,
+    complemento     VARCHAR(100),
+    contato         VARCHAR(50),
+    capacidade      DECIMAL(10, 2),
+    ocupacao        DECIMAL(10, 2),
+
+    CONSTRAINT pk_armazem
+        PRIMARY KEY (cep, nro, rua),
+
+    CONSTRAINT fk_armazem_logistico
+        FOREIGN KEY (cep, nro, rua) REFERENCES Centro_Logistico(cep, nro, rua)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE Centro_Compostagem (
+    cep             VARCHAR(8)      NOT NULL,
+    nro             INT             NOT NULL,
+    rua             VARCHAR(100)    NOT NULL,
+    complemento     VARCHAR(100),
+    contato         VARCHAR(50), 
+    capacidade      DECIMAL(10, 2),
+    ocupacao        DECIMAL(10, 2),
+
+    CONSTRAINT pk_centro_compostagem
+        PRIMARY KEY (cep, nro, rua),
+
+    CONSTRAINT fk_centro_compostagem_logistico
+        FOREIGN KEY (cep, nro, rua) REFERENCES Centro_Logistico(cep, nro, rua)
+        ON DELETE CASCADE
+);
+--------------------------------------------------------------------------------------------
+
+
+-- Especializações de Lote de Produto
+--------------------------------------------------------------------------------------------
+CREATE TABLE Lote_Consumo_Humano (
+    lote            VARCHAR(100)    NOT NULL,
+    cep             VARCHAR(8),
+    nro             INT,
+    rua             VARCHAR(100),
+
+    CONSTRAINT pk_lote_consumo_humano
+        PRIMARY KEY (lote),
+
+    CONSTRAINT fk_lote_consumo_humano_lote
+        FOREIGN KEY (lote) REFERENCES Lote_de_Produto(id_lote)
+        ON DELETE CASCADE, -- por ser uma tabela de especialização, deve ser apagada caso o lote de produto seja removido
+                           -- o mesmo vale para as demais tabelas de especialização de lote de produto
+
+    CONSTRAINT fk_lote_consumo_humano_centro
+        FOREIGN KEY (cep, nro, rua) REFERENCES Centro_Beneficiamento_Distribuicao(cep, nro, rua)
+        ON DELETE SET NULL
+);
+
+CREATE TABLE Lote_Consumo_Animal (
+    lote            VARCHAR(100)    NOT NULL,
+    cep             VARCHAR(8),
+    nro             INT,
+    rua             VARCHAR(100),
+
+    CONSTRAINT pk_lote_consumo_animal
+        PRIMARY KEY (lote),
+
+    CONSTRAINT fk_lote_consumo_animal_lote
+        FOREIGN KEY (lote) REFERENCES Lote_de_Produto(id_lote)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_lote_consumo_animal_armazem
+        FOREIGN KEY (cep, nro, rua) REFERENCES Armazem(cep, nro, rua)
+        ON DELETE SET NULL
+);
+
+CREATE TABLE Lote_Compostagem (
+    lote            VARCHAR(100)    NOT NULL,
+    cep             VARCHAR(8),
+    nro             INT,
+    rua             VARCHAR(100),
+
+    CONSTRAINT pk_lote_compostagem
+        PRIMARY KEY (lote),
+
+    CONSTRAINT fk_lote_compostagem_lote
+        FOREIGN KEY (lote) REFERENCES Lote_de_Produto(id_lote)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_lote_compostagem_centro
+        FOREIGN KEY (cep, nro, rua) REFERENCES Centro_Compostagem(cep, nro, rua)
+        ON DELETE SET NULL
+);
+--------------------------------------------------------------------------------------------
