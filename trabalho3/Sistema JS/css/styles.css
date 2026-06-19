@@ -1,0 +1,391 @@
+:root {
+  --verde-principal:  #1D9E75;
+  --verde-claro:      #EAF3DE;
+  --verde-escuro:     #3B6D11;
+  --fundo:            #F5F5F5;
+  --branco:           #FFFFFF;
+  --texto-principal:  #1A1A1A;
+  --texto-secundario: #6B6B6B;
+  --erro:             #E24B4A;
+  --borda:            #E0E0E0;
+  --badge-humano-bg:  #E6F1FB;
+  --badge-humano-fg:  #185FA5;
+  --badge-animal-bg:  #FAEEDA;
+  --badge-animal-fg:  #854F0B;
+  --composto-bg:      #EAF3DE;
+  --composto-fg:      #3B6D11;
+  --radius:           8px;
+  --radius-lg:        12px;
+  --sombra:           0 1px 4px rgba(0,0,0,0.08);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--fundo);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#app {
+  background: var(--branco);
+  width: 480px;
+  min-height: 600px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--sombra);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Telas ─────────────────────────────────────────────── */
+
+.screen {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  padding: 24px;
+}
+
+.screen.active {
+  display: flex;
+}
+
+/* ── Botões ────────────────────────────────────────────── */
+
+.btn-primario {
+  background: var(--verde-principal);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  padding: 12px;
+  width: 100%;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.15s;
+}
+.btn-primario:hover {
+  background: #0F6E56;
+}
+
+.btn-secundario {
+  background: var(--branco);
+  color: var(--texto-principal);
+  border: 1px solid var(--borda);
+  border-radius: var(--radius);
+  padding: 12px;
+  width: 100%;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+.btn-secundario:hover {
+  background: var(--fundo);
+}
+
+.btn-voltar {
+  background: none;
+  border: none;
+  color: var(--texto-secundario);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.btn-voltar:hover {
+  color: var(--texto-principal);
+}
+
+.btn-menu {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 16px;
+  background: var(--branco);
+  border: 1px solid var(--borda);
+  border-radius: var(--radius);
+  cursor: pointer;
+  margin-bottom: 10px;
+  text-align: left;
+  transition: background 0.15s;
+}
+.btn-menu:hover {
+  background: var(--fundo);
+}
+.btn-menu .icone {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius);
+  background: var(--verde-claro);
+  color: var(--verde-escuro);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+.btn-menu .seta {
+  margin-left: auto;
+  color: var(--texto-secundario);
+}
+.btn-menu .titulo-btn {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--texto-principal);
+  margin-bottom: 2px;
+}
+.btn-menu .desc-btn {
+  font-size: 12px;
+  color: var(--texto-secundario);
+}
+
+/* ── Formulários ───────────────────────────────────────── */
+
+.form-group {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.form-label {
+  font-size: 13px;
+  color: var(--texto-secundario);
+}
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+input, select {
+  padding: 10px 12px;
+  border: 1px solid var(--borda);
+  border-radius: var(--radius);
+  font-size: 14px;
+  width: 100%;
+  outline: none;
+  background: var(--branco);
+  color: var(--texto-principal);
+  transition: border-color 0.15s;
+}
+input:focus, select:focus {
+  border-color: var(--verde-principal);
+}
+input.erro-campo {
+  border-color: var(--erro);
+}
+
+.label-erro {
+  font-size: 12px;
+  color: var(--erro);
+  margin-top: 4px;
+  display: none;
+}
+.label-erro.visivel {
+  display: block;
+}
+
+.label-sucesso-inline {
+  font-size: 12px;
+  color: var(--verde-escuro);
+  margin-top: 4px;
+  display: none;
+}
+.label-sucesso-inline.visivel {
+  display: block;
+}
+
+.progresso {
+  font-size: 12px;
+  color: var(--texto-secundario);
+  margin-bottom: 4px;
+}
+
+.titulo-tela {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--texto-principal);
+  margin-bottom: 4px;
+}
+.subtitulo-tela {
+  font-size: 13px;
+  color: var(--texto-secundario);
+  margin-bottom: 24px;
+}
+
+/* ── Card de resumo (passo 3) ──────────────────────────── */
+
+.card-resumo {
+  background: var(--fundo);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 20px;
+}
+.card-resumo .linha {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--borda);
+  font-size: 13px;
+}
+.card-resumo .linha:last-child {
+  border-bottom: none;
+}
+.card-resumo .chave {
+  color: var(--texto-secundario);
+}
+.card-resumo .valor {
+  color: var(--texto-principal);
+  font-weight: 500;
+}
+
+/* ── Card de sucesso ───────────────────────────────────── */
+
+.card-sucesso {
+  background: var(--verde-claro);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  text-align: center;
+  margin-bottom: 24px;
+}
+.card-sucesso .icone-sucesso {
+  font-size: 40px;
+  color: var(--verde-escuro);
+  margin-bottom: 12px;
+}
+.card-sucesso .titulo-sucesso {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--verde-escuro);
+  margin-bottom: 4px;
+}
+.card-sucesso .sub-sucesso {
+  font-size: 13px;
+  color: var(--verde-escuro);
+}
+
+/* ── Filtros (consulta) ────────────────────────────────── */
+
+.filtros {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.btn-filtro {
+  padding: 6px 14px;
+  border-radius: 99px;
+  border: 1px solid var(--borda);
+  background: var(--branco);
+  color: var(--texto-secundario);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-filtro.ativo-humano {
+  background: var(--badge-humano-bg);
+  color: var(--badge-humano-fg);
+  border-color: var(--badge-humano-fg);
+}
+.btn-filtro.ativo-animal {
+  background: var(--badge-animal-bg);
+  color: var(--badge-animal-fg);
+  border-color: var(--badge-animal-fg);
+}
+.btn-filtro.ativo-composto {
+  background: var(--composto-bg);
+  color: var(--composto-fg);
+  border-color: var(--composto-fg);
+}
+
+/* ── Lista de resultados ───────────────────────────────── */
+
+.lista-resultados {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.card-lote {
+  background: var(--branco);
+  border: 1px solid var(--borda);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+.card-lote .lote-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.card-lote .lote-nome {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--texto-principal);
+}
+.card-lote .lote-meta {
+  font-size: 12px;
+  color: var(--texto-secundario);
+  margin-bottom: 2px;
+}
+.badge {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-weight: 500;
+}
+.badge-humano {
+  background: var(--badge-humano-bg);
+  color: var(--badge-humano-fg);
+}
+.badge-animal {
+  background: var(--badge-animal-bg);
+  color: var(--badge-animal-fg);
+}
+.badge-composto {
+  background: var(--composto-bg);
+  color: var(--composto-fg);
+}
+
+.rodape-resultados {
+  font-size: 12px;
+  color: var(--texto-secundario);
+  margin-top: 12px;
+  text-align: right;
+}
+
+.vazio {
+  text-align: center;
+  color: var(--texto-secundario);
+  font-size: 14px;
+  padding: 40px 0;
+}
+
+/* ── Cabeçalho do app (menu) ────────────────────────────── */
+
+.app-header {
+  padding: 24px 24px 0;
+}
+.app-titulo {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--verde-principal);
+  margin-bottom: 2px;
+}
+.app-subtitulo {
+  font-size: 12px;
+  color: var(--texto-secundario);
+  margin-bottom: 24px;
+}
