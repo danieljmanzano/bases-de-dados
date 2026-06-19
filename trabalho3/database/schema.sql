@@ -75,7 +75,7 @@ CREATE TABLE Transportadora (
     nro                 INT NOT NULL,
     rua                 VARCHAR(100) NOT NULL,
     complemento         VARCHAR(100),
-    contato             VARCHAR(50) NOT NULL, -- TODO: decidir se é telefone ou email
+    contato             VARCHAR(50) NOT NULL,
     bool_caminhao       BOOLEAN DEFAULT FALSE,
     bool_van            BOOLEAN DEFAULT FALSE,
     bool_carro          BOOLEAN DEFAULT FALSE,
