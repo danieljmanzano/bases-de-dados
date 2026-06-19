@@ -47,30 +47,142 @@ ORDER BY lp.data_hora_cadastro DESC;
 -- agrupamentos, subconsultas correlacionadas e não correlacionadas, etc.),
 -- sendo 1 delas OBRIGATORIAMENTE com DIVISÃO RELACIONAL. Cada uma deve ser
 -- documentada e justificada no relatório.
+
+SELECT
+    p.nome                                  AS produto,
+    SUM(req_por_lote.quantidade_requisitada) AS quantidade_total_adquirida,
+    SUM(lp.quantidade)                       AS quantidade_total_cadastrada
+FROM Produto p
+LEFT JOIN Lote_de_Produto lp
+    ON lp.produto = p.nome
+   AND TO_CHAR(lp.data_hora_cadastro, 'YYYY-MM') = '2024-06'
+LEFT JOIN (
+    SELECT
+        r.lote,
+        SUM(r.porcao_lote) AS quantidade_requisitada
+    FROM Requisita r
+    JOIN Solicitacao_de_Aquisicao sa
+        ON sa.data_hora    = r.data_hora_aquisicao
+       AND sa.beneficiario = r.beneficiario
+    WHERE TO_CHAR(sa.data_hora, 'YYYY-MM') = '2024-06'
+    GROUP BY r.lote
+) req_por_lote
+    ON req_por_lote.lote = lp.id_lote
+GROUP BY p.nome
+ORDER BY p.nome;
+ 
+ 
+-- ---------------------------------------------------------------------
+-- 2) JOIN de múltiplas tabelas
+-- (Funcionário de Administração) Dado um lote de produto, quais
+-- beneficiários (somente solicitações aprovadas) o adquiriram:
+-- Lote_de_Produto -> Requisita -> Solicitacao_de_Aquisicao -> Beneficiario
 --
--- Sugestões com base nas funcionalidades já descritas no relatório (seção 2.2):
+-- Parâmetro: id do lote -> 'LOTE-0001' (ajuste conforme necessário)
+-- ---------------------------------------------------------------------
+SELECT DISTINCT
+    b.cnpj,
+    b.nome,
+    b.classificacao
+FROM Lote_de_Produto lp
+JOIN Requisita r
+    ON r.lote = lp.id_lote
+JOIN Solicitacao_de_Aquisicao sa
+    ON sa.data_hora    = r.data_hora_aquisicao
+   AND sa.beneficiario = r.beneficiario
+JOIN Beneficiario b
+    ON b.cnpj = sa.beneficiario
+WHERE lp.id_lote = 'LOTE-0001'
+  AND UPPER(sa.validacao) = 'APROVADA';
+ 
+ 
+-- ---------------------------------------------------------------------
+-- 3) DIVISÃO RELACIONAL (obrigatória)
+-- Beneficiários que já requisitaram pelo menos uma porção de TODOS os
+-- lotes de uma determinada classificação (ex.: 'CONSUMO HUMANO').
 --
--- [ ] GROUP BY + JOIN — (Funcionário de Administração) Para cada produto,
---     a quantidade total adquirida (via Requisita) e a quantidade total
---     distribuída/cadastrada em um determinado mês.
+-- Lógica: não existe lote daquela classificação que o beneficiário
+-- NÃO tenha requisitado.
 --
--- [ ] JOIN de múltiplas tabelas — (Funcionário de Administração) Dado um
---     lote de produto, quais beneficiários (solicitações aprovadas) o
---     adquiriram (Lote_de_Produto -> Requisita -> Solicitacao_de_Aquisicao
---     -> Beneficiario).
---
--- [ ] DIVISÃO RELACIONAL (obrigatória) — por exemplo: beneficiários que já
---     requisitaram pelo menos uma porção de TODOS os lotes de uma
---     determinada classificação; ou produtores que tiveram lotes entregues
---     a TODOS os beneficiários cadastrados de uma classificação.
---
--- [ ] Subconsulta CORRELACIONADA — por exemplo: lotes cujo custo de
---     produção é maior que a média dos custos dos lotes do mesmo produtor.
---
--- [ ] Subconsulta NÃO CORRELACIONADA — por exemplo: beneficiários que
---     nunca registraram nenhuma solicitação de aquisição (NOT IN / NOT
---     EXISTS sobre Solicitacao_de_Aquisicao).
---
--- [ ] JUNÇÃO EXTERNA (LEFT/RIGHT JOIN) — por exemplo: todos os produtores
---     e, se houver, a quantidade total de lotes que já cadastraram,
---     incluindo produtores sem nenhum lote cadastrado.
+-- Parâmetro: classificação -> 'CONSUMO HUMANO' (ajuste conforme necessário)
+-- ---------------------------------------------------------------------
+SELECT
+    b.cnpj,
+    b.nome
+FROM Beneficiario b
+WHERE NOT EXISTS (
+    -- existe algum lote da classificação alvo...
+    SELECT 1
+    FROM Lote_de_Produto lp
+    WHERE UPPER(lp.classificacao) = 'CONSUMO HUMANO'
+      AND NOT EXISTS (
+          -- ...que o beneficiário b NUNCA requisitou?
+          SELECT 1
+          FROM Requisita r
+          JOIN Solicitacao_de_Aquisicao sa
+              ON sa.data_hora    = r.data_hora_aquisicao
+             AND sa.beneficiario = r.beneficiario
+          WHERE r.lote          = lp.id_lote
+            AND sa.beneficiario = b.cnpj
+      )
+);
+ 
+ 
+-- ---------------------------------------------------------------------
+-- 4) SUBCONSULTA CORRELACIONADA
+-- Lotes cujo custo de produção é maior que a média dos custos dos
+-- lotes do mesmo produtor.
+-- ---------------------------------------------------------------------
+SELECT
+    lp.id_lote,
+    lp.produto,
+    lp.produtor,
+    lp.custo_producao
+FROM Lote_de_Produto lp
+WHERE lp.custo_producao > (
+    SELECT AVG(lp2.custo_producao)
+    FROM Lote_de_Produto lp2
+    WHERE lp2.produtor = lp.produtor   -- referência à linha externa: torna a subconsulta correlacionada
+)
+ORDER BY lp.produtor, lp.custo_producao DESC;
+ 
+ 
+-- ---------------------------------------------------------------------
+-- 5) SUBCONSULTA NÃO CORRELACIONADA
+-- Beneficiários que nunca registraram nenhuma solicitação de aquisição.
+-- ---------------------------------------------------------------------
+SELECT
+    b.cnpj,
+    b.nome
+FROM Beneficiario b
+WHERE b.cnpj NOT IN (
+    SELECT sa.beneficiario
+    FROM Solicitacao_de_Aquisicao sa
+);
+ 
+-- Versão equivalente com NOT EXISTS (mais segura contra NULLs):
+-- SELECT b.cnpj, b.nome
+-- FROM Beneficiario b
+-- WHERE NOT EXISTS (
+--     SELECT 1
+--     FROM Solicitacao_de_Aquisicao sa
+--     WHERE sa.beneficiario = b.cnpj
+-- );
+ 
+ 
+-- ---------------------------------------------------------------------
+-- 6) JUNÇÃO EXTERNA (LEFT JOIN)
+-- Todos os produtores e, se houver, a quantidade total de lotes que já
+-- cadastraram, incluindo produtores sem nenhum lote cadastrado.
+-- ---------------------------------------------------------------------
+SELECT
+    pr.cpf,
+    pr.nome,
+    COUNT(lp.id_lote)              AS qtd_lotes_cadastrados,
+    COALESCE(SUM(lp.quantidade), 0) AS quantidade_total_cadastrada
+FROM Produtor_Rural pr
+LEFT JOIN Lote_de_Produto lp
+    ON lp.produtor = pr.cpf
+GROUP BY pr.cpf, pr.nome
+ORDER BY pr.nome;
+ 

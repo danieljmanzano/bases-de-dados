@@ -232,3 +232,103 @@ INSERT INTO Titular (id_conta, nome_titular) VALUES
 INSERT INTO Doacao (nota_fiscal, id_conta, filantropo) VALUES
     ('NF-D-0001', 'CTA-0001', '33344455566'),
     ('NF-D-0002', 'CTA-0002', '44455566011');
+
+--DADOS DE TESTE PARA AS 6 CONSULTAS (consultas.sql)
+
+-- Produtores novos, exclusivos destes testes.
+INSERT INTO Produtor_Rural (cpf, cep, nro, rua, contato, nome)
+VALUES ('44444444444', '44444444', 44, 'Rua Nova A', 'joaop@teste.com', 'João Pereira (Teste)');
+INSERT INTO Produtor_Rural (cpf, cep, nro, rua, contato, nome)
+VALUES ('55555555555', '55555555', 55, 'Rua Nova B', 'mariaf@teste.com', 'Maria Fontoura (Teste)');
+INSERT INTO Produtor_Rural (cpf, cep, nro, rua, contato, nome)
+VALUES ('66666666666', '66666666', 66, 'Rua Nova C', 'pedrol@teste.com', 'Pedro Lima (Teste)');
+
+-- Beneficiários novos, exclusivos destes testes.
+INSERT INTO Beneficiario (cnpj, cep, nro, rua, contato, nome, classificacao, validacao_elegibilidade)
+VALUES ('77777777000177', '70000000', 1, 'Rua das Flores (Teste)', 'inst1@teste.com', 'Instituto Esperança (Teste)', 'INSTITUIÇÃO SOCIAL', 'Documentação validada');
+INSERT INTO Beneficiario (cnpj, cep, nro, rua, contato, nome, classificacao, validacao_elegibilidade)
+VALUES ('88888888000188', '80000000', 2, 'Rua dos Lírios (Teste)', 'sitio2@teste.com', 'Sítio Bom Plantio (Teste)', 'PEQUENO AGRICULTOR', 'Documentação validada');
+INSERT INTO Beneficiario (cnpj, cep, nro, rua, contato, nome, classificacao, validacao_elegibilidade)
+VALUES ('99999999000199', '90000000', 3, 'Rua das Acácias (Teste)', 'fazenda3@teste.com', 'Fazenda Dois Irmãos (Teste)', 'PEQUENO PECUARISTA', 'Documentação validada');
+INSERT INTO Beneficiario (cnpj, cep, nro, rua, contato, nome, classificacao, validacao_elegibilidade)
+VALUES ('10101010000110', '11100000', 4, 'Rua dos Ipês (Teste)', 'assoc4@teste.com', 'Associação Mãos Unidas (Teste)', 'INSTITUIÇÃO SOCIAL', 'Documentação validada');
+INSERT INTO Beneficiario (cnpj, cep, nro, rua, contato, nome, classificacao, validacao_elegibilidade)
+VALUES ('12121212000112', '12200000', 5, 'Rua das Palmeiras (Teste)', 'coop5@teste.com', 'Cooperativa Vida Nova (Teste)', 'INSTITUIÇÃO SOCIAL', 'Documentação validada');
+INSERT INTO Beneficiario (cnpj, cep, nro, rua, contato, nome, classificacao, validacao_elegibilidade)
+VALUES ('13131313000113', '13300000', 6, 'Rua dos Cedros (Teste)', 'lar6@teste.com', 'Lar dos Idosos Pôr do Sol (Teste)', 'INSTITUIÇÃO SOCIAL', 'Documentação validada');
+
+
+-- (1) GROUP BY + JOIN | deveria entrar no total de "quantidade cadastrada" de Tomate em 2024-06
+INSERT INTO Lote_de_Produto (id_lote, produto, data_hora_cadastro, produtor, quantidade, classificacao)
+VALUES ('LOTE-1001', 'Tomate', '2024-06-05 09:00:00', '44444444444', 100, 'CONSUMO HUMANO');
+
+-- (1) GROUP BY + JOIN | NÃO deveria entrar no total de 2024-06 (cadastrado em 2024-07)
+INSERT INTO Lote_de_Produto (id_lote, produto, data_hora_cadastro, produtor, quantidade, classificacao)
+VALUES ('LOTE-1002', 'Tomate', '2024-07-01 09:00:00', '55555555555', 50, 'CONSUMO HUMANO');
+
+-- (1) GROUP BY + JOIN | deveria entrar no total de "quantidade adquirida" de Tomate em 2024-06
+INSERT INTO Solicitacao_de_Aquisicao (data_hora, beneficiario, declaracao_finalidade, validacao)
+VALUES ('2024-06-10 10:00:00', '77777777000177', 'Distribuição mensal', 'APROVADA');
+INSERT INTO Requisita (data_hora_aquisicao, beneficiario, lote, porcao_lote)
+VALUES ('2024-06-10 10:00:00', '77777777000177', 'LOTE-1001', 30);
+
+
+-- (2) JOIN de múltiplas tabelas | lote de referência da consulta
+INSERT INTO Lote_de_Produto (id_lote, produto, data_hora_cadastro, produtor, quantidade, classificacao)
+VALUES ('LOTE-2001', 'Milho', '2024-06-01 08:00:00', '44444444444', 200, 'CONSUMO ANIMAL');
+
+-- (2) JOIN de múltiplas tabelas | deveria retornar (solicitação APROVADA)
+INSERT INTO Solicitacao_de_Aquisicao (data_hora, beneficiario, declaracao_finalidade, validacao)
+VALUES ('2024-06-12 11:00:00', '77777777000177', 'Distribuição para instituição', 'APROVADA');
+INSERT INTO Requisita (data_hora_aquisicao, beneficiario, lote, porcao_lote)
+VALUES ('2024-06-12 11:00:00', '77777777000177', 'LOTE-2001', 50);
+
+-- (2) JOIN de múltiplas tabelas | NÃO deveria retornar (solicitação ainda PENDENTE)
+INSERT INTO Solicitacao_de_Aquisicao (data_hora, beneficiario, declaracao_finalidade, validacao)
+VALUES ('2024-06-13 11:00:00', '88888888000188', 'Distribuição para produtor', 'PENDENTE');
+INSERT INTO Requisita (data_hora_aquisicao, beneficiario, lote, porcao_lote)
+VALUES ('2024-06-13 11:00:00', '88888888000188', 'LOTE-2001', 40);
+
+
+-- (3) DIVISÃO RELACIONAL | segundo lote de classificação 'CONSUMO HUMANO' (junto com LOTE-1001)
+INSERT INTO Lote_de_Produto (id_lote, produto, data_hora_cadastro, produtor, quantidade, classificacao)
+VALUES ('LOTE-3002', 'Milho', '2024-06-02 08:00:00', '55555555555', 80, 'CONSUMO HUMANO');
+
+-- (3) DIVISÃO RELACIONAL | deveria retornar (requisitou TODOS os lotes 'CONSUMO HUMANO': LOTE-1001 e LOTE-3002)
+INSERT INTO Solicitacao_de_Aquisicao (data_hora, beneficiario, declaracao_finalidade, validacao)
+VALUES ('2024-06-14 09:00:00', '99999999000199', 'Aquisição completa', 'APROVADA');
+INSERT INTO Requisita (data_hora_aquisicao, beneficiario, lote, porcao_lote)
+VALUES ('2024-06-14 09:00:00', '99999999000199', 'LOTE-1001', 10);
+INSERT INTO Requisita (data_hora_aquisicao, beneficiario, lote, porcao_lote)
+VALUES ('2024-06-14 09:00:00', '99999999000199', 'LOTE-3002', 15);
+
+-- (3) DIVISÃO RELACIONAL | NÃO deveria retornar (requisitou só LOTE-1001, faltando LOTE-3002)
+INSERT INTO Solicitacao_de_Aquisicao (data_hora, beneficiario, declaracao_finalidade, validacao)
+VALUES ('2024-06-15 09:00:00', '10101010000110', 'Aquisição parcial', 'APROVADA');
+INSERT INTO Requisita (data_hora_aquisicao, beneficiario, lote, porcao_lote)
+VALUES ('2024-06-15 09:00:00', '10101010000110', 'LOTE-1001', 5);
+
+
+-- (4) SUBCONSULTA CORRELACIONADA | deveria retornar (custo 300 > média do produtor 44444444444, que é 200)
+INSERT INTO Lote_de_Produto (id_lote, produto, data_hora_cadastro, produtor, custo_producao, quantidade, classificacao)
+VALUES ('LOTE-4002', 'Tomate', '2024-06-21 10:00:00', '44444444444', 300.00, 10, 'CONSUMO HUMANO');
+
+-- (4) SUBCONSULTA CORRELACIONADA | NÃO deveria retornar (custo 100 < média do produtor 44444444444, que é 200)
+INSERT INTO Lote_de_Produto (id_lote, produto, data_hora_cadastro, produtor, custo_producao, quantidade, classificacao)
+VALUES ('LOTE-4001', 'Tomate', '2024-06-20 10:00:00', '44444444444', 100.00, 10, 'CONSUMO HUMANO');
+
+
+-- (5) SUBCONSULTA NÃO CORRELACIONADA | deveria retornar (Beneficiario 12121212000112 nunca fez nenhuma Solicitacao_de_Aquisicao)
+-- (nenhuma inserção adicional necessária: ausência de Solicitacao_de_Aquisicao é o próprio caso de teste)
+
+-- (5) SUBCONSULTA NÃO CORRELACIONADA | NÃO deveria retornar (Beneficiario 13131313000113 já possui uma Solicitacao_de_Aquisicao)
+INSERT INTO Solicitacao_de_Aquisicao (data_hora, beneficiario, declaracao_finalidade, validacao)
+VALUES ('2024-06-16 09:00:00', '13131313000113', 'Solicitação de teste', 'APROVADA');
+
+
+-- (6) JUNÇÃO EXTERNA (LEFT JOIN) | deveria retornar com soma de quantidades > 0 (produtor 44444444444 possui lotes cadastrados acima)
+-- (nenhuma inserção adicional necessária: os lotes de '44444444444' inseridos acima já cobrem este caso)
+
+-- (6) JUNÇÃO EXTERNA (LEFT JOIN) | deveria retornar mesmo SEM nenhum lote, com quantidade total = 0 (produtor 66666666666 não tem nenhum Lote_de_Produto)
+-- (nenhuma inserção adicional necessária: a ausência de Lote_de_Produto para '66666666666' é o próprio caso de teste;
+--  é o caso que uma junção interna (INNER JOIN), incorretamente, NÃO retornaria)
