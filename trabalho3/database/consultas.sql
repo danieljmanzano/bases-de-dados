@@ -48,6 +48,15 @@ ORDER BY lp.data_hora_cadastro DESC;
 -- sendo 1 delas OBRIGATORIAMENTE com DIVISÃO RELACIONAL. Cada uma deve ser
 -- documentada e justificada no relatório.
 
+-- ---------------------------------------------------------------------
+-- 1) GROUP BY + JOIN
+--   (Funcionário de Administração) Para cada produto, a quantidade total 
+--   adquirida (via Requisita) e a quantidade total distribuída/cadastrada
+--   em um determinado mês.
+--
+-- Eficiência: o filtro de mês usa um intervalo (>= / <) como isso é possivel 
+--   utilizar o indice para busca  
+-- ---------------------------------------------------------------------
 SELECT
     p.nome                                  AS produto,
     SUM(req_por_lote.quantidade_requisitada) AS quantidade_total_adquirida,
@@ -55,7 +64,8 @@ SELECT
 FROM Produto p
 LEFT JOIN Lote_de_Produto lp
     ON lp.produto = p.nome
-   AND TO_CHAR(lp.data_hora_cadastro, 'YYYY-MM') = '2024-06'
+   AND lp.data_hora_cadastro >= '2024-06-01'
+   AND lp.data_hora_cadastro <  '2024-07-01'
 LEFT JOIN (
     SELECT
         r.lote,
@@ -64,7 +74,8 @@ LEFT JOIN (
     JOIN Solicitacao_de_Aquisicao sa
         ON sa.data_hora    = r.data_hora_aquisicao
        AND sa.beneficiario = r.beneficiario
-    WHERE TO_CHAR(sa.data_hora, 'YYYY-MM') = '2024-06'
+    WHERE sa.data_hora >= '2024-06-01'
+      AND sa.data_hora <  '2024-07-01'
     GROUP BY r.lote
 ) req_por_lote
     ON req_por_lote.lote = lp.id_lote
@@ -105,6 +116,10 @@ WHERE lp.id_lote = 'LOTE-0001'
 -- NÃO tenha requisitado.
 --
 -- Parâmetro: classificação -> 'CONSUMO HUMANO' (ajuste conforme necessário)
+--
+-- Eficiência: comparação direta (=), sem UPPER(), pois classificacao é
+-- sempre armazenada em maiúsculas (ver dados.sql e o mapeamento em
+-- backend/app.py). UPPER(coluna) impede o uso de idx_lote_produto_classificacao.
 -- ---------------------------------------------------------------------
 SELECT
     b.cnpj,
@@ -114,7 +129,7 @@ WHERE NOT EXISTS (
     -- existe algum lote da classificação alvo...
     SELECT 1
     FROM Lote_de_Produto lp
-    WHERE UPPER(lp.classificacao) = 'CONSUMO HUMANO'
+    WHERE lp.classificacao = 'CONSUMO HUMANO'
       AND NOT EXISTS (
           -- ...que o beneficiário b NUNCA requisitou?
           SELECT 1
@@ -132,6 +147,11 @@ WHERE NOT EXISTS (
 -- 4) SUBCONSULTA CORRELACIONADA
 -- Lotes cujo custo de produção é maior que a média dos custos dos
 -- lotes do mesmo produtor.
+--
+-- Eficiência: subconsulta reexecutada por linha externa — idx_lote_produto_produtor
+--   garante Index Scan ao invés de Seq Scan. Custo alto se poucos produtores com
+--   muitos lotes cada; aceitável no cenário esperado (muitos produtores, poucos lotes).
+--   Se o volume crescer, considerar window function (calcula a média uma vez por grupo).
 -- ---------------------------------------------------------------------
 SELECT
     lp.id_lote,

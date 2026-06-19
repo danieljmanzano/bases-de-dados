@@ -294,13 +294,20 @@ VALUES ('2024-06-13 11:00:00', '88888888000188', 'LOTE-2001', 40);
 INSERT INTO Lote_de_Produto (id_lote, produto, data_hora_cadastro, produtor, quantidade, classificacao)
 VALUES ('LOTE-3002', 'Milho', '2024-06-02 08:00:00', '55555555555', 80, 'CONSUMO HUMANO');
 
--- (3) DIVISÃO RELACIONAL | deveria retornar (requisitou TODOS os lotes 'CONSUMO HUMANO': LOTE-1001 e LOTE-3002)
+-- (3) DIVISÃO RELACIONAL | deveria retornar (requisitou TODOS os lotes 'CONSUMO HUMANO'
+-- existentes no banco — a consulta considera o universo completo da classificação, não
+-- só os lotes criados para este teste, então é preciso cobrir também LOTE-0001, LOTE-0002
+-- (do seed original) e LOTE-1002 (do teste 1). A cobertura de LOTE-4001/LOTE-4002 (criados
+-- só no teste 4, mais abaixo) é completada depois que esses lotes existem.
 INSERT INTO Solicitacao_de_Aquisicao (data_hora, beneficiario, declaracao_finalidade, validacao)
 VALUES ('2024-06-14 09:00:00', '99999999000199', 'Aquisição completa', 'APROVADA');
 INSERT INTO Requisita (data_hora_aquisicao, beneficiario, lote, porcao_lote)
-VALUES ('2024-06-14 09:00:00', '99999999000199', 'LOTE-1001', 10);
-INSERT INTO Requisita (data_hora_aquisicao, beneficiario, lote, porcao_lote)
-VALUES ('2024-06-14 09:00:00', '99999999000199', 'LOTE-3002', 15);
+VALUES
+    ('2024-06-14 09:00:00', '99999999000199', 'LOTE-1001', 10),
+    ('2024-06-14 09:00:00', '99999999000199', 'LOTE-3002', 15),
+    ('2024-06-14 09:00:00', '99999999000199', 'LOTE-0001', 1),
+    ('2024-06-14 09:00:00', '99999999000199', 'LOTE-0002', 1),
+    ('2024-06-14 09:00:00', '99999999000199', 'LOTE-1002', 1);
 
 -- (3) DIVISÃO RELACIONAL | NÃO deveria retornar (requisitou só LOTE-1001, faltando LOTE-3002)
 INSERT INTO Solicitacao_de_Aquisicao (data_hora, beneficiario, declaracao_finalidade, validacao)
@@ -316,6 +323,13 @@ VALUES ('LOTE-4002', 'Tomate', '2024-06-21 10:00:00', '44444444444', 300.00, 10,
 -- (4) SUBCONSULTA CORRELACIONADA | NÃO deveria retornar (custo 100 < média do produtor 44444444444, que é 200)
 INSERT INTO Lote_de_Produto (id_lote, produto, data_hora_cadastro, produtor, custo_producao, quantidade, classificacao)
 VALUES ('LOTE-4001', 'Tomate', '2024-06-20 10:00:00', '44444444444', 100.00, 10, 'CONSUMO HUMANO');
+
+-- (3) DIVISÃO RELACIONAL | completa a cobertura de 99999999000199 sobre os lotes 'CONSUMO
+-- HUMANO' LOTE-4001 e LOTE-4002, que só existem a partir deste ponto do arquivo.
+INSERT INTO Requisita (data_hora_aquisicao, beneficiario, lote, porcao_lote)
+VALUES
+    ('2024-06-14 09:00:00', '99999999000199', 'LOTE-4001', 1),
+    ('2024-06-14 09:00:00', '99999999000199', 'LOTE-4002', 1);
 
 
 -- (5) SUBCONSULTA NÃO CORRELACIONADA | deveria retornar (Beneficiario 12121212000112 nunca fez nenhuma Solicitacao_de_Aquisicao)

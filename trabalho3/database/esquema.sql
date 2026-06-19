@@ -296,13 +296,21 @@ CREATE TABLE Lote_de_Produto (
     CONSTRAINT ck_lote_produto_custo 
         CHECK (custo_producao >= 0),
 
-    CONSTRAINT ck_lote_produto_classificacao 
+    CONSTRAINT ck_lote_produto_classificacao
         CHECK (UPPER(classificacao) IN (
-            'CONSUMO HUMANO', 
-            'CONSUMO ANIMAL', 
+            'CONSUMO HUMANO',
+            'CONSUMO ANIMAL',
             'COMPOSTAGEM'
         ))
 );
+
+-- Índices de apoio às consultas de database/consultas.sql: filtro por
+-- classificação (consulta 3, divisão relacional), filtro por mês de
+-- cadastro (consulta 1, GROUP BY) e junção/correlação por produtor
+-- (consultas 4 e 6).
+CREATE INDEX idx_lote_produto_classificacao ON Lote_de_Produto (classificacao);
+CREATE INDEX idx_lote_produto_data_cadastro ON Lote_de_Produto (data_hora_cadastro);
+CREATE INDEX idx_lote_produto_produtor ON Lote_de_Produto (produtor);
 
 
 CREATE TABLE Solicitacao_de_Aquisicao (
@@ -388,9 +396,13 @@ CREATE TABLE Requisita (
         FOREIGN KEY (lote) REFERENCES Lote_de_Produto(id_lote) 
         ON DELETE RESTRICT,
 
-    CONSTRAINT ck_requisita_porcao 
+    CONSTRAINT ck_requisita_porcao
         CHECK (porcao_lote > 0)
 );
+
+-- 'lote' é apenas a 3ª coluna da chave composta acima, então buscas por
+-- lote isolado (consultas 1, 2 e 3) não se beneficiariam do índice da PK.
+CREATE INDEX idx_requisita_lote ON Requisita (lote);
 
 
 CREATE TABLE Titular (
