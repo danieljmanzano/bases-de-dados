@@ -22,9 +22,70 @@ def data_br_para_iso(valor):
     return datetime.strptime(valor, "%d/%m/%Y").strftime("%Y-%m-%d")
 
 
+CLASSIFICACOES_VALIDAS = {
+    "Consumo humano": "CONSUMO HUMANO",
+    "Consumo animal": "CONSUMO ANIMAL",
+    "Compostagem": "COMPOSTAGEM",
+}
+CLASSIFICACOES_EXIBICAO = {valor: chave for chave, valor in CLASSIFICACOES_VALIDAS.items()}
+
+
 @app.get("/")
 def index():
     return send_from_directory(FRONTEND_DIR, "index.html")
+
+
+@app.get("/api/produtos")
+def listar_produtos():
+    with get_cursor() as cursor:
+        cursor.execute("SELECT nome, tipo FROM Produto ORDER BY nome")
+        produtos = cursor.fetchall()
+    return jsonify(produtos)
+
+
+@app.get("/api/produtores")
+def buscar_produtor():
+    cpf = somente_digitos(request.args.get("cpf", ""))
+    if not cpf:
+        return jsonify({"erro": "Informe o CPF do produtor."}), 400
+
+    with get_cursor() as cursor:
+        cursor.execute("SELECT cpf, nome FROM Produtor_Rural WHERE cpf = %s", (cpf,))
+        produtor = cursor.fetchone()
+
+    if not produtor:
+        return jsonify({"erro": "Produtor não encontrado."}), 404
+
+    return jsonify(produtor)
+
+
+@app.get("/api/lotes")
+def listar_lotes():
+    classificacao = request.args.get("classificacao", "")
+    classificacao_bd = CLASSIFICACOES_VALIDAS.get(classificacao)
+    if not classificacao_bd:
+        return jsonify({"erro": "Classificação inválida."}), 400
+
+    with get_cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT lp.id_lote AS id, lp.produto, lp.classificacao, lp.quantidade,
+                   lp.validade, lp.localizacao, pr.nome AS produtor
+            FROM Lote_de_Produto lp
+            JOIN Produtor_Rural pr ON pr.cpf = lp.produtor
+            WHERE lp.classificacao = %s
+            ORDER BY lp.data_hora_cadastro DESC
+            """,
+            (classificacao_bd,),
+        )
+        lotes = cursor.fetchall()
+
+    for lote in lotes:
+        lote["classificacao"] = CLASSIFICACOES_EXIBICAO.get(lote["classificacao"], lote["classificacao"])
+        if lote["validade"]:
+            lote["validade"] = lote["validade"].strftime("%d/%m/%Y")
+
+    return jsonify(lotes)
 
 
 @app.post("/api/lotes")
