@@ -56,46 +56,36 @@ function exibirErroGeral(mensagem) {
 }
 
 /**
- * Simula a criação do lote (INSERT) e avança para a tela de sucesso.
+ * Envia o lote para a API (INSERT) e avança para a tela de sucesso.
  */
-function confirmarCadastro() {
+async function confirmarCadastro() {
   document.getElementById("p3-erro-geral").classList.remove("visivel");
 
-  // Simulação local do INSERT — substituído pelo TODO de integração abaixo.
-  const novoLote = {
-    id: PROXIMO_ID++,
-    produto: App.session.produto,
-    produtor: App.session.produtor_nome,
-    quantidade: App.session.quantidade,
-    validade: App.session.validade,
-    localizacao: App.session.localizacao,
-    classificacao: "Consumo humano", // mock fixo por enquanto
-  };
-  LOTES.push(novoLote);
-  App.session.id_gerado = novoLote.id;
-  App.navegarPara("sucesso");
+  try {
+    const res = await fetch("/api/lotes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        produto:       App.session.produto,
+        cpf_cnpj:      App.session.cpf_cnpj,
+        quantidade:    App.session.quantidade,
+        data_colheita: App.session.data_colheita,
+        validade:      App.session.validade,
+        localizacao:   App.session.localizacao,
+      }),
+    });
 
-  // TODO: substituir o bloco acima por:
-  //
-  // const res = await fetch("/api/lotes", {
-  //   method: "POST",
-  //   headers: { "Content-Type": "application/json" },
-  //   body: JSON.stringify({
-  //     produto:       App.session.produto,
-  //     cpf_cnpj:      App.session.cpf_cnpj,
-  //     quantidade:    App.session.quantidade,
-  //     data_colheita: App.session.data_colheita,
-  //     validade:      App.session.validade,
-  //     localizacao:   App.session.localizacao,
-  //   }),
-  // });
-  // if (!res.ok) {
-  //   exibirErroGeral("Não foi possível salvar o lote. Tente novamente.");
-  //   return;
-  // }
-  // const data = await res.json();
-  // App.session.id_gerado = data.id_lote;
-  // App.navegarPara("sucesso");
+    if (!res.ok) {
+      exibirErroGeral("Não foi possível salvar o lote. Tente novamente.");
+      return;
+    }
+
+    const data = await res.json();
+    App.session.id_gerado = data.id_lote;
+    App.navegarPara("sucesso");
+  } catch (erro) {
+    exibirErroGeral("Não foi possível salvar o lote. Tente novamente.");
+  }
 }
 
 construirTelaPasso3();

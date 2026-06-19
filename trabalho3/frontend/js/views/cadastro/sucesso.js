@@ -14,7 +14,7 @@ function construirTelaSucesso() {
     <div class="card-sucesso">
       <div class="icone-sucesso">✓</div>
       <p class="titulo-sucesso">Lote cadastrado com sucesso!</p>
-      <p class="sub-sucesso">ID do lote: #<span id="sucesso-id"></span></p>
+      <p class="sub-sucesso">ID do lote: <span id="sucesso-id"></span></p>
     </div>
 
     <button class="btn-primario" id="sucesso-outro">Cadastrar outro lote</button>

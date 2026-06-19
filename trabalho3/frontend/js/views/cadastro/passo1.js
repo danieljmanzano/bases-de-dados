@@ -10,12 +10,6 @@ function construirTelaPasso1() {
   screen.id = "screen-passo1";
   screen.className = "screen";
 
-  const opcoesProduto = PRODUTOS
-    .map((nome) => `<option value="${nome}">${nome}</option>`)
-    .join("");
-  // TODO: GET /api/produtos
-  // Resposta esperada: [{ nome: string }] — usar para popular este <select>
-
   screen.innerHTML = `
     <button class="btn-voltar" id="p1-voltar">← Voltar</button>
     <p class="progresso">Passo 1 de 3</p>
@@ -33,7 +27,6 @@ function construirTelaPasso1() {
       <label class="form-label" for="p1-produto">Produto</label>
       <select id="p1-produto">
         <option value="">Selecione um produto</option>
-        ${opcoesProduto}
       </select>
       <p class="label-erro" id="p1-produto-erro">Selecione um produto.</p>
     </div>
@@ -42,6 +35,8 @@ function construirTelaPasso1() {
   `;
 
   app.appendChild(screen);
+
+  carregarProdutos();
 
   screen.querySelector("#p1-voltar").addEventListener("click", () => {
     App.navegarPara("menu");
@@ -80,10 +75,31 @@ function aplicarMascaraCpfCnpj(valor) {
 }
 
 /**
+ * Busca a lista de produtos disponíveis na API e popula o <select>.
+ */
+async function carregarProdutos() {
+  const select = document.querySelector("#screen-passo1 #p1-produto");
+
+  try {
+    const res = await fetch("/api/produtos");
+    const produtos = await res.json();
+
+    produtos.forEach(({ nome }) => {
+      const opcao = document.createElement("option");
+      opcao.value = nome;
+      opcao.textContent = nome;
+      select.appendChild(opcao);
+    });
+  } catch (erro) {
+    console.error("Não foi possível carregar os produtos.", erro);
+  }
+}
+
+/**
  * Busca o produtor correspondente ao CPF/CNPJ informado e atualiza
  * os feedbacks visuais (sucesso ou erro) e o estado da sessão.
  */
-function validarProdutor() {
+async function validarProdutor() {
   const screen = document.getElementById("screen-passo1");
   const input = screen.querySelector("#p1-cpf-cnpj");
   const erro = screen.querySelector("#p1-cpf-erro");
@@ -98,17 +114,18 @@ function validarProdutor() {
     return;
   }
 
-  // TODO: await fetch(`/api/produtores?cpf_cnpj=${valor}`)
-  //   const data = await res.json();
-  //   if (!res.ok) { /* produtor não encontrado */ }
-  const nomeProdutor = PRODUTORES[valor];
+  try {
+    const res = await fetch(`/api/produtores?cpf_cnpj=${encodeURIComponent(valor)}`);
+    if (!res.ok) {
+      throw new Error("Produtor não encontrado.");
+    }
+    const data = await res.json();
 
-  if (nomeProdutor) {
     App.session.cpf_cnpj = valor;
-    App.session.produtor_nome = nomeProdutor;
-    sucesso.textContent = `✓ Produtor: ${nomeProdutor}`;
+    App.session.produtor_nome = data.nome;
+    sucesso.textContent = `✓ Produtor: ${data.nome}`;
     sucesso.classList.add("visivel");
-  } else {
+  } catch {
     delete App.session.cpf_cnpj;
     delete App.session.produtor_nome;
     input.classList.add("erro-campo");

@@ -93,13 +93,17 @@ function atualizarBotoesFiltro() {
 }
 
 /**
- * Filtra os lotes mockados pela classificação ativa e renderiza
+ * Busca os lotes na API filtrados pela classificação ativa e renderiza
  * a lista de resultados na tela.
  */
-function carregarResultados() {
-  // TODO: const res = await fetch(`/api/lotes?classificacao=${encodeURIComponent(filtroAtivo)}`)
-  //       const resultados = await res.json();
-  const resultados = LOTES.filter((lote) => lote.classificacao === filtroAtivo);
+async function carregarResultados() {
+  let resultados = [];
+  try {
+    const res = await fetch(`/api/lotes?classificacao=${encodeURIComponent(filtroAtivo)}`);
+    resultados = await res.json();
+  } catch (erro) {
+    console.error("Não foi possível carregar os lotes.", erro);
+  }
 
   const screen = document.getElementById("screen-consulta");
   const lista = screen.querySelector("#consulta-lista");
