@@ -67,7 +67,7 @@ async function confirmarCadastro() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         produto:       App.session.produto,
-        cpf_cnpj:      App.session.cpf_cnpj,
+        cpf:           App.session.cpf,
         quantidade:    App.session.quantidade,
         data_colheita: App.session.data_colheita,
         validade:      App.session.validade,

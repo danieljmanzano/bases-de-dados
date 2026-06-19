@@ -31,7 +31,7 @@ def index():
 def criar_lote():
     dados = request.get_json(silent=True) or {}
 
-    campos_obrigatorios = ["produto", "cpf_cnpj", "quantidade", "data_colheita", "validade", "localizacao"]
+    campos_obrigatorios = ["produto", "cpf", "quantidade", "data_colheita", "validade", "localizacao"]
     faltantes = [campo for campo in campos_obrigatorios if not dados.get(campo)]
     if faltantes:
         return jsonify({"erro": f"Campos obrigatórios faltando: {', '.join(faltantes)}"}), 400
@@ -42,7 +42,7 @@ def criar_lote():
     except ValueError:
         return jsonify({"erro": "Datas devem estar no formato dd/mm/aaaa."}), 400
 
-    cpf_cnpj = somente_digitos(dados["cpf_cnpj"])
+    cpf = somente_digitos(dados["cpf"])
 
     try:
         with get_cursor(commit=True) as cursor:
@@ -57,7 +57,7 @@ def criar_lote():
                 """,
                 (
                     dados["produto"],
-                    cpf_cnpj,
+                    cpf,
                     dados["quantidade"],
                     data_colheita,
                     validade,

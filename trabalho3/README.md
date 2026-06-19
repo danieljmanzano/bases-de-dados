@@ -64,4 +64,4 @@ Acesse em [http://localhost:5000](http://localhost:5000).
 
 - `frontend/` — interface web (HTML/CSS/JS), servida pelo próprio Flask
 - `backend/` — API Flask (`app.py`), conexão com o banco (`db.py`, `config.py`) e setup do schema (`setup.db.py`)
-- `database/` — `schema.sql` (tabelas), `seed.sql` (dados de teste), `queries.sql`
+- `database/` — `esquema.sql` (tabelas), `dados.sql` (dados de teste), `consultas.sql`

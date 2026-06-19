@@ -14,11 +14,11 @@ function construirTelaPasso1() {
     <button class="btn-voltar" id="p1-voltar">← Voltar</button>
     <p class="progresso">Passo 1 de 3</p>
     <p class="titulo-tela">Produtor e produto</p>
-    <p class="subtitulo-tela">Informe o CPF/CNPJ do produtor e o produto do excedente.</p>
+    <p class="subtitulo-tela">Informe o CPF do produtor e o produto do excedente.</p>
 
     <div class="form-group">
-      <label class="form-label" for="p1-cpf-cnpj">CPF/CNPJ do produtor</label>
-      <input type="text" id="p1-cpf-cnpj" placeholder="000.000.000-00 ou 00.000.000/0001-00">
+      <label class="form-label" for="p1-cpf">CPF do produtor</label>
+      <input type="text" id="p1-cpf" placeholder="000.000.000-00">
       <p class="label-erro" id="p1-cpf-erro">✗ Produtor não encontrado.</p>
       <p class="label-sucesso-inline" id="p1-cpf-sucesso"></p>
     </div>
@@ -42,9 +42,9 @@ function construirTelaPasso1() {
     App.navegarPara("menu");
   });
 
-  const inputCpf = screen.querySelector("#p1-cpf-cnpj");
+  const inputCpf = screen.querySelector("#p1-cpf");
   inputCpf.addEventListener("input", () => {
-    inputCpf.value = aplicarMascaraCpfCnpj(inputCpf.value);
+    inputCpf.value = aplicarMascaraCpf(inputCpf.value);
   });
   inputCpf.addEventListener("blur", validarProdutor);
 
@@ -52,26 +52,17 @@ function construirTelaPasso1() {
 }
 
 /**
- * Remove caracteres não numéricos e formata como CPF (000.000.000-00)
- * ou CNPJ (00.000.000/0000-00), de acordo com a quantidade de dígitos.
+ * Remove caracteres não numéricos e formata como CPF (000.000.000-00).
  * @param {string} valor - Valor digitado pelo usuário.
  * @returns {string} Valor formatado.
  */
-function aplicarMascaraCpfCnpj(valor) {
-  const digitos = valor.replace(/\D/g, "").slice(0, 14);
-
-  if (digitos.length <= 11) {
-    return digitos
-      .replace(/(\d{3})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-  }
+function aplicarMascaraCpf(valor) {
+  const digitos = valor.replace(/\D/g, "").slice(0, 11);
 
   return digitos
-    .replace(/(\d{2})(\d)/, "$1.$2")
     .replace(/(\d{3})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d)/, "$1/$2")
-    .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
 }
 
 /**
@@ -96,12 +87,12 @@ async function carregarProdutos() {
 }
 
 /**
- * Busca o produtor correspondente ao CPF/CNPJ informado e atualiza
+ * Busca o produtor correspondente ao CPF informado e atualiza
  * os feedbacks visuais (sucesso ou erro) e o estado da sessão.
  */
 async function validarProdutor() {
   const screen = document.getElementById("screen-passo1");
-  const input = screen.querySelector("#p1-cpf-cnpj");
+  const input = screen.querySelector("#p1-cpf");
   const erro = screen.querySelector("#p1-cpf-erro");
   const sucesso = screen.querySelector("#p1-cpf-sucesso");
 
@@ -115,18 +106,18 @@ async function validarProdutor() {
   }
 
   try {
-    const res = await fetch(`/api/produtores?cpf_cnpj=${encodeURIComponent(valor)}`);
+    const res = await fetch(`/api/produtores?cpf=${encodeURIComponent(valor)}`);
     if (!res.ok) {
       throw new Error("Produtor não encontrado.");
     }
     const data = await res.json();
 
-    App.session.cpf_cnpj = valor;
+    App.session.cpf = valor;
     App.session.produtor_nome = data.nome;
     sucesso.textContent = `✓ Produtor: ${data.nome}`;
     sucesso.classList.add("visivel");
   } catch {
-    delete App.session.cpf_cnpj;
+    delete App.session.cpf;
     delete App.session.produtor_nome;
     input.classList.add("erro-campo");
     erro.classList.add("visivel");
@@ -148,7 +139,7 @@ function avancarParaPasso2() {
   if (!App.session.produtor_nome) {
     valido = false;
     screen.querySelector("#p1-cpf-erro").classList.add("visivel");
-    screen.querySelector("#p1-cpf-cnpj").classList.add("erro-campo");
+    screen.querySelector("#p1-cpf").classList.add("erro-campo");
   }
 
   if (!selectProduto.value) {
@@ -174,8 +165,8 @@ App.registrarTela("passo1", {
     App.limparSession();
 
     const screen = document.getElementById("screen-passo1");
-    screen.querySelector("#p1-cpf-cnpj").value = "";
-    screen.querySelector("#p1-cpf-cnpj").classList.remove("erro-campo");
+    screen.querySelector("#p1-cpf").value = "";
+    screen.querySelector("#p1-cpf").classList.remove("erro-campo");
     screen.querySelector("#p1-produto").value = "";
     screen.querySelector("#p1-cpf-erro").classList.remove("visivel");
     screen.querySelector("#p1-cpf-sucesso").classList.remove("visivel");

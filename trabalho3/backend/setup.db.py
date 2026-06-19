@@ -14,12 +14,12 @@ def inicializar_banco():
         cursor = conn.cursor()
 
         # Executa o esquema
-        with open(os.path.join(DATABASE_DIR, "schema.sql"), "r") as arquivo_esquema:
+        with open(os.path.join(DATABASE_DIR, "esquema.sql"), "r") as arquivo_esquema:
             cursor.execute(arquivo_esquema.read())
             print("Tabelas criadas com sucesso.")
 
         # Executa a inserção de dados (opcional)
-        with open(os.path.join(DATABASE_DIR, "seed.sql"), "r") as arquivo_dados:
+        with open(os.path.join(DATABASE_DIR, "dados.sql"), "r") as arquivo_dados:
             cursor.execute(arquivo_dados.read())
             print("Dados iniciais inseridos com sucesso.")
 

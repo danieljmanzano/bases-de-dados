@@ -20,6 +20,7 @@ DROP TABLE IF EXISTS Doacao;
 DROP TABLE IF EXISTS Titular;
 
 DROP TABLE IF EXISTS Lote_de_Produto;
+DROP SEQUENCE IF EXISTS seq_lote_id; -- NÃO SEI SE PODE FAZER ISSO (VER LINHA 248)
 DROP TABLE IF EXISTS Transporte;
 DROP TABLE IF EXISTS Funcionario;
 
@@ -44,7 +45,7 @@ CREATE TABLE Produto (
 
 
 CREATE TABLE Produtor_Rural (
-    cpf_cnpj                VARCHAR(14)     NOT NULL, -- TODO: padronizar para cpf ou cnpj
+    cpf                     VARCHAR(11)     NOT NULL, -- somente CPF, produtor rural é pessoa física
     cep                     VARCHAR(8)      NOT NULL,
     nro                     INT             NOT NULL,
     rua                     VARCHAR(100)    NOT NULL,
@@ -55,12 +56,12 @@ CREATE TABLE Produtor_Rural (
     bool_consumo_animal     BOOLEAN DEFAULT FALSE,
     bool_consumo_humano     BOOLEAN DEFAULT FALSE,
 
-    CONSTRAINT pk_produtor_rural 
-        PRIMARY KEY (cpf_cnpj),
+    CONSTRAINT pk_produtor_rural
+        PRIMARY KEY (cpf),
 
-    CONSTRAINT ck_produtor_rural_cpf_cnpj_len 
-        CHECK (CHAR_LENGTH(cpf_cnpj) IN (11, 14)), -- TODO: ajustar depois de padronizar cpf ou cnpj
-    
+    CONSTRAINT ck_produtor_rural_cpf_len
+        CHECK (CHAR_LENGTH(cpf) = 11),
+
     CONSTRAINT ck_produtor_rural_cep_len 
         CHECK (CHAR_LENGTH(cep) = 8),
     
@@ -96,7 +97,7 @@ CREATE TABLE Transportadora (
 
 
 CREATE TABLE Beneficiario (
-    cpf_cnpj                VARCHAR(14)     NOT NULL, -- TODO: padronizar para cpf ou cnpj
+    cnpj                    VARCHAR(14)     NOT NULL, -- somente CNPJ, beneficiário é sempre uma organização (instituição, sítio, etc.)
     cep                     VARCHAR(8)      NOT NULL,
     nro                     INT             NOT NULL,
     rua                     VARCHAR(100)    NOT NULL,
@@ -104,14 +105,14 @@ CREATE TABLE Beneficiario (
     contato                 VARCHAR(50)     NOT NULL,
     nome                    VARCHAR(100)    NOT NULL,
     classificacao           VARCHAR(50)     NOT NULL,
-    validacao_elegibilidade VARCHAR(255)    NOT NULL, 
+    validacao_elegibilidade VARCHAR(255)    NOT NULL,
 
-    CONSTRAINT pk_beneficiario 
-        PRIMARY KEY (cpf_cnpj),
-   
-    CONSTRAINT ck_beneficiario_cnpj_len 
-        CHECK (CHAR_LENGTH(cpf_cnpj) IN (11, 14)),
-    
+    CONSTRAINT pk_beneficiario
+        PRIMARY KEY (cnpj),
+
+    CONSTRAINT ck_beneficiario_cnpj_len
+        CHECK (CHAR_LENGTH(cnpj) = 14),
+
     CONSTRAINT ck_beneficiario_cep_len 
         CHECK (CHAR_LENGTH(cep) = 8),
     
@@ -128,15 +129,15 @@ CREATE TABLE Beneficiario (
 
 
 CREATE TABLE Filantropo (
-    cpf_cnpj    VARCHAR(14)     NOT NULL, -- TODO: padronizar para cpf ou cnpj
-    contato     VARCHAR(50)     NOT NULL, 
+    cpf         VARCHAR(11)     NOT NULL, -- somente CPF, filantropo é pessoa física
+    contato     VARCHAR(50)     NOT NULL,
     nome        VARCHAR(100)    NOT NULL,
 
-    CONSTRAINT pk_filantropo 
-        PRIMARY KEY (cpf_cnpj),
+    CONSTRAINT pk_filantropo
+        PRIMARY KEY (cpf),
 
-    CONSTRAINT ck_filantropo_cnpj_len 
-        CHECK (CHAR_LENGTH(cpf_cnpj) IN (11, 14))
+    CONSTRAINT ck_filantropo_cpf_len
+        CHECK (CHAR_LENGTH(cpf) = 11)
 );
 
 
@@ -242,11 +243,15 @@ CREATE TABLE Transporte (
 );
 
 
+-- Gera o sufixo numérico de id_lote (ex.: 'LOTE-0001'); começa em 7 para não
+-- colidir com os lotes LOTE-0001..LOTE-0006 inseridos por database/dados.sql.
+CREATE SEQUENCE seq_lote_id START WITH 7;
+
 CREATE TABLE Lote_de_Produto (
     id_lote                     VARCHAR(100)    NOT NULL,
     produto                     VARCHAR(50)     NOT NULL,
     data_hora_cadastro          TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    produtor                    VARCHAR(14)     NOT NULL, -- TODO: padronizar para cpf ou cnpj
+    produtor                    VARCHAR(11)     NOT NULL,
     custo_producao              DECIMAL(10, 2),
     data_colheita               DATE,
     validade                    DATE,
@@ -270,7 +275,7 @@ CREATE TABLE Lote_de_Produto (
         ON DELETE RESTRICT, -- mantém o histórico de lotes mesmo que o produto seja removido
 
     CONSTRAINT fk_lote_produto_produtor 
-        FOREIGN KEY (produtor) REFERENCES Produtor_Rural(cpf_cnpj)
+        FOREIGN KEY (produtor) REFERENCES Produtor_Rural(cpf)
         ON DELETE RESTRICT, -- mantém o histórico de lotes mesmo que o produtor seja removido
 
     CONSTRAINT fk_lote_produto_conta 
@@ -312,7 +317,7 @@ CREATE TABLE Solicitacao_de_Aquisicao (
         PRIMARY KEY (data_hora, beneficiario),
 
     CONSTRAINT fk_solicitacao_beneficiario 
-        FOREIGN KEY (beneficiario) REFERENCES Beneficiario(cpf_cnpj) 
+        FOREIGN KEY (beneficiario) REFERENCES Beneficiario(cnpj)
         ON DELETE CASCADE, -- por ser uma entidade fraca de beneficiário, deve ser apagada caso o beneficiário seja removido
 
     CONSTRAINT fk_solicitacao_funcionario 
@@ -404,7 +409,7 @@ CREATE TABLE Titular (
 CREATE TABLE Doacao (
     nota_fiscal             VARCHAR(50)     NOT NULL,
     id_conta                VARCHAR(15)     NOT NULL,
-    filantropo              VARCHAR(14)     NOT NULL,
+    filantropo              VARCHAR(11)     NOT NULL,
 
     CONSTRAINT pk_doacao 
         PRIMARY KEY (nota_fiscal),
@@ -414,7 +419,7 @@ CREATE TABLE Doacao (
         ON DELETE RESTRICT,
 
     CONSTRAINT fk_doacao_filantropo 
-        FOREIGN KEY (filantropo) REFERENCES Filantropo(cpf_cnpj) 
+        FOREIGN KEY (filantropo) REFERENCES Filantropo(cpf)
         ON DELETE RESTRICT
 );
 
