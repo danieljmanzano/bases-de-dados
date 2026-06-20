@@ -139,7 +139,7 @@ WHERE NOT EXISTS (
       )
 );
  
------------------------------------------------------------------------
+ -- ---------------------------------------------------------------------
 -- 4) SUBCONSULTA CORRELACIONADA
 -- Lotes cujo preço por unidade (custo_producao / quantidade) é maior
 -- que a média do preço por unidade dos lotes do mesmo produtor.
@@ -167,24 +167,25 @@ ORDER BY lp.produtor, preco_por_unidade DESC;
  
 -- ---------------------------------------------------------------------
 -- 5) SUBCONSULTA NÃO CORRELACIONADA
--- Beneficiários que nunca registraram nenhuma solicitação de aquisição.
+-- Beneficiários cuja quantidade total requisitada é maior que a média
+-- de quantidade requisitada, considerando todos os beneficiários.
 -- ---------------------------------------------------------------------
 SELECT
     b.cnpj,
-    b.nome
-FROM Beneficiario b LEFT JOIN Solicitacao_de_Aquisicao sa 
-ON b.cnpj = sa.Beneficiario
-GROUP BY b.cnpj
-HAVING COUNT(sa.beneficiario)=0
- 
--- Versão equivalente com NOT EXISTS (mais segura contra NULLs):
--- SELECT b.cnpj, b.nome
--- FROM Beneficiario b
--- WHERE NOT EXISTS (
---     SELECT 1
---     FROM Solicitacao_de_Aquisicao sa
---     WHERE sa.beneficiario = b.cnpj
--- );
+    b.nome,
+    SUM(r.porcao_lote) AS quantidade_total_requisitada
+FROM Beneficiario b
+JOIN Requisita r
+    ON r.beneficiario = b.cnpj
+GROUP BY b.cnpj, b.nome
+HAVING SUM(r.porcao_lote) > (
+    SELECT AVG(quantidade_por_beneficiario)
+    FROM (
+        SELECT SUM(r2.porcao_lote) AS quantidade_por_beneficiario
+        FROM Requisita r2
+        GROUP BY r2.beneficiario
+    ) AS medias_por_beneficiario
+);
  
  
 -- ---------------------------------------------------------------------
