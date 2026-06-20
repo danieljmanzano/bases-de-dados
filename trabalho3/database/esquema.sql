@@ -185,6 +185,13 @@ CREATE TABLE Conta_Bancaria (
 
     CONSTRAINT unq_conta_bancaria 
         UNIQUE (codigo_banco, nro_conta, nro_agencia)
+
+    CONSTRAINT ck_conta_bancaria_tipo
+        CHECK (UPPER(tipo) IN (
+            'CORRENTE',
+            'POUPANCA',
+            'PAGAMENTO'
+        ))
 );
 
 
@@ -489,7 +496,7 @@ CREATE TABLE Centro_Beneficiamento_Distribuicao (
                           -- o mesmo vale para as demais tabelas de especialização de centro logístico
 
     CONSTRAINT ck_centro_beneficiamento_capacidade 
-        CHECK (capacidade > 0),  -- capacidade deve ser maior que 0
+        CHECK (capacidade > 0), -- capacidade deve ser maior que 0
 
     CONSTRAINT ck_centro_beneficiamento_ocupacao 
         CHECK (ocupacao >= 0 AND ocupacao <= capacidade), -- ocupacao deve estar entre 0 e capacidade
