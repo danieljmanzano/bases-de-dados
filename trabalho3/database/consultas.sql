@@ -88,19 +88,20 @@ ORDER BY p.nome;
 --
 -- Parâmetro: id do lote -> 'LOTE-0001' (ajuste conforme necessário)
 -- ---------------------------------------------------------------------
-
 SELECT 
-    b.cnpj,
-    b.nome,
-    b.classificacao
-FROM Lote_de_Produto lp
-JOIN Requisita r
-    ON r.lote = lp.id_lote AND lp.id_lote = 'LOTE-0001'
-JOIN Solicitacao_de_Aquisicao sa
-    ON sa.data_hora    = r.data_hora_aquisicao AND UPPER(sa.validacao) = 'APROVADA'
-   AND sa.beneficiario = r.beneficiario
-JOIN Beneficiario b
-    ON b.cnpj = sa.beneficiario;
+        b.cnpj,
+        b.nome,
+        b.classificacao
+    FROM Lote_de_Produto lp
+    JOIN Requisita r
+        ON r.lote = lp.id_lote 
+        AND lp.id_lote = 'LOTE-0001'
+    JOIN Solicitacao_de_Aquisicao sa
+        ON sa.data_hora    = r.data_hora_aquisicao 
+        AND UPPER(sa.validacao) = 'APROVADA'
+       AND sa.beneficiario = r.beneficiario
+    JOIN Beneficiario b
+        ON b.cnpj = sa.beneficiario;
  
  
 -- ---------------------------------------------------------------------
