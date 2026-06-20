@@ -211,6 +211,75 @@ CREATE TABLE Centro_Logistico (
         CHECK (nro > 0)
 );
 
+
+-- Especializações de Centro Logístico
+
+CREATE TABLE Centro_Beneficiamento_Distribuicao (
+    cep             VARCHAR(8)      NOT NULL,
+    nro             INT             NOT NULL,
+    rua             VARCHAR(100)    NOT NULL,
+    complemento     VARCHAR(100),
+    contato         VARCHAR(50), 
+    capacidade      DECIMAL(10, 2),
+    ocupacao        DECIMAL(10, 2),
+
+    CONSTRAINT pk_centro_beneficiamento
+        PRIMARY KEY (cep, nro, rua),
+
+    CONSTRAINT ck_centro_beneficiamento_capacidade 
+        CHECK (capacidade > 0), -- capacidade deve ser maior que 0
+
+    CONSTRAINT ck_centro_beneficiamento_ocupacao 
+        CHECK (ocupacao >= 0 AND ocupacao <= capacidade), -- ocupacao deve estar entre 0 e capacidade
+
+    CONSTRAINT ck_centro_beneficiamento_contato
+        CHECK (contato LIKE '%@%')
+);
+
+CREATE TABLE Armazem (
+    cep             VARCHAR(8)      NOT NULL,
+    nro             INT             NOT NULL,
+    rua             VARCHAR(100)    NOT NULL,
+    complemento     VARCHAR(100),
+    contato         VARCHAR(50),
+    capacidade      DECIMAL(10, 2),
+    ocupacao        DECIMAL(10, 2),
+
+    CONSTRAINT pk_armazem
+        PRIMARY KEY (cep, nro, rua),
+
+    CONSTRAINT ck_armazem_capacidade 
+        CHECK (capacidade > 0),  
+
+    CONSTRAINT ck_armazem_ocupacao 
+        CHECK (ocupacao >= 0 AND ocupacao <= capacidade),
+
+    CONSTRAINT ck_armazem_contato
+        CHECK (contato LIKE '%@%')
+);
+
+CREATE TABLE Centro_Compostagem (
+    cep             VARCHAR(8)      NOT NULL,
+    nro             INT             NOT NULL,
+    rua             VARCHAR(100)    NOT NULL,
+    complemento     VARCHAR(100),
+    contato         VARCHAR(50), 
+    capacidade      DECIMAL(10, 2),
+    ocupacao        DECIMAL(10, 2),
+
+    CONSTRAINT pk_centro_compostagem
+        PRIMARY KEY (cep, nro, rua),
+
+    CONSTRAINT ck_centro_compostagem_capacidade 
+        CHECK (capacidade > 0),  
+
+    CONSTRAINT ck_centro_compostagem_ocupacao 
+        CHECK (ocupacao >= 0 AND ocupacao <= capacidade), 
+
+    CONSTRAINT ck_centro_compostagem_contato
+        CHECK (contato LIKE '%@%')
+);
+
 --------------------------------------------------------------------------------------------
 
 
@@ -476,76 +545,6 @@ CREATE TABLE Doacao (
         ON DELETE RESTRICT
 );
 
---------------------------------------------------------------------------------------------
-
-
--- Especializações de Centro Logístico
---------------------------------------------------------------------------------------------
-CREATE TABLE Centro_Beneficiamento_Distribuicao (
-    cep             VARCHAR(8)      NOT NULL,
-    nro             INT             NOT NULL,
-    rua             VARCHAR(100)    NOT NULL,
-    complemento     VARCHAR(100),
-    contato         VARCHAR(50), 
-    capacidade      DECIMAL(10, 2),
-    ocupacao        DECIMAL(10, 2),
-
-    CONSTRAINT pk_centro_beneficiamento
-        PRIMARY KEY (cep, nro, rua),
-
-    CONSTRAINT ck_centro_beneficiamento_capacidade 
-        CHECK (capacidade > 0), -- capacidade deve ser maior que 0
-
-    CONSTRAINT ck_centro_beneficiamento_ocupacao 
-        CHECK (ocupacao >= 0 AND ocupacao <= capacidade), -- ocupacao deve estar entre 0 e capacidade
-
-    CONSTRAINT ck_centro_beneficiamento_contato
-        CHECK (contato LIKE '%@%')
-);
-
-CREATE TABLE Armazem (
-    cep             VARCHAR(8)      NOT NULL,
-    nro             INT             NOT NULL,
-    rua             VARCHAR(100)    NOT NULL,
-    complemento     VARCHAR(100),
-    contato         VARCHAR(50),
-    capacidade      DECIMAL(10, 2),
-    ocupacao        DECIMAL(10, 2),
-
-    CONSTRAINT pk_armazem
-        PRIMARY KEY (cep, nro, rua),
-
-    CONSTRAINT ck_armazem_capacidade 
-        CHECK (capacidade > 0),  
-
-    CONSTRAINT ck_armazem_ocupacao 
-        CHECK (ocupacao >= 0 AND ocupacao <= capacidade),
-
-    CONSTRAINT ck_armazem_contato
-        CHECK (contato LIKE '%@%')
-);
-
-CREATE TABLE Centro_Compostagem (
-    cep             VARCHAR(8)      NOT NULL,
-    nro             INT             NOT NULL,
-    rua             VARCHAR(100)    NOT NULL,
-    complemento     VARCHAR(100),
-    contato         VARCHAR(50), 
-    capacidade      DECIMAL(10, 2),
-    ocupacao        DECIMAL(10, 2),
-
-    CONSTRAINT pk_centro_compostagem
-        PRIMARY KEY (cep, nro, rua),
-
-    CONSTRAINT ck_centro_compostagem_capacidade 
-        CHECK (capacidade > 0),  
-
-    CONSTRAINT ck_centro_compostagem_ocupacao 
-        CHECK (ocupacao >= 0 AND ocupacao <= capacidade), 
-
-    CONSTRAINT ck_centro_compostagem_contato
-        CHECK (contato LIKE '%@%')
-);
 --------------------------------------------------------------------------------------------
 
 
