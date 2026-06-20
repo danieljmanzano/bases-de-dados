@@ -51,7 +51,7 @@ ORDER BY lp.data_hora_cadastro DESC;
 -- ---------------------------------------------------------------------
 -- 1) GROUP BY + JOIN
 --   (Funcionário de Administração) Para cada produto, a quantidade total 
---   adquirida (via Requisita) e a quantidade total distribuída/cadastrada
+--   adquirida (via Requisita) e a quantidade total armazenada
 --   em um determinado mês.
 --
 -- Eficiência: o filtro de mês usa um intervalo (>= / <) como isso é possivel 
@@ -88,20 +88,19 @@ ORDER BY p.nome;
 --
 -- Parâmetro: id do lote -> 'LOTE-0001' (ajuste conforme necessário)
 -- ---------------------------------------------------------------------
-SELECT DISTINCT
+
+SELECT 
     b.cnpj,
     b.nome,
     b.classificacao
 FROM Lote_de_Produto lp
 JOIN Requisita r
-    ON r.lote = lp.id_lote
+    ON r.lote = lp.id_lote AND lp.id_lote = 'LOTE-0001'
 JOIN Solicitacao_de_Aquisicao sa
-    ON sa.data_hora    = r.data_hora_aquisicao
+    ON sa.data_hora    = r.data_hora_aquisicao AND UPPER(sa.validacao) = 'APROVADA'
    AND sa.beneficiario = r.beneficiario
 JOIN Beneficiario b
-    ON b.cnpj = sa.beneficiario
-WHERE lp.id_lote = 'LOTE-0001'
-  AND UPPER(sa.validacao) = 'APROVADA';
+    ON b.cnpj = sa.beneficiario;
  
  
 -- ---------------------------------------------------------------------
