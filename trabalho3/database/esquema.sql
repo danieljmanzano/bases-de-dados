@@ -389,6 +389,9 @@ CREATE TABLE Lote_de_Entrega (
     CONSTRAINT pk_lote_de_entrega 
         PRIMARY KEY (data_hora_aquisicao, beneficiario),
 
+    CONSTRAINT unq_lote_entrega
+        UNIQUE (placa_veiculo, data_hora_coleta),
+
     CONSTRAINT fk_lote_entrega_solicitacao 
         FOREIGN KEY (data_hora_aquisicao, beneficiario) REFERENCES Solicitacao_de_Aquisicao(data_hora, beneficiario) 
         ON DELETE CASCADE, -- por ser uma entidade fraca de solicitação, deve ser apagada caso a solicitação seja removida
@@ -490,11 +493,6 @@ CREATE TABLE Centro_Beneficiamento_Distribuicao (
     CONSTRAINT pk_centro_beneficiamento
         PRIMARY KEY (cep, nro, rua),
 
-    CONSTRAINT fk_centro_beneficiamento_logistico
-        FOREIGN KEY (cep, nro, rua) REFERENCES Centro_Logistico(cep, nro, rua)
-        ON DELETE CASCADE -- por ser uma tabela de especialização, deve ser apagada caso o centro logístico seja removido
-                          -- o mesmo vale para as demais tabelas de especialização de centro logístico
-
     CONSTRAINT ck_centro_beneficiamento_capacidade 
         CHECK (capacidade > 0), -- capacidade deve ser maior que 0
 
@@ -517,10 +515,6 @@ CREATE TABLE Armazem (
     CONSTRAINT pk_armazem
         PRIMARY KEY (cep, nro, rua),
 
-    CONSTRAINT fk_armazem_logistico
-        FOREIGN KEY (cep, nro, rua) REFERENCES Centro_Logistico(cep, nro, rua)
-        ON DELETE CASCADE
-
     CONSTRAINT ck_armazem_capacidade 
         CHECK (capacidade > 0),  
 
@@ -542,10 +536,6 @@ CREATE TABLE Centro_Compostagem (
 
     CONSTRAINT pk_centro_compostagem
         PRIMARY KEY (cep, nro, rua),
-
-    CONSTRAINT fk_centro_compostagem_logistico
-        FOREIGN KEY (cep, nro, rua) REFERENCES Centro_Logistico(cep, nro, rua)
-        ON DELETE CASCADE
 
     CONSTRAINT ck_centro_compostagem_capacidade 
         CHECK (capacidade > 0),  
