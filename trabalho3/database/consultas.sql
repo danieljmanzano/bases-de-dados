@@ -139,11 +139,10 @@ WHERE NOT EXISTS (
       )
 );
  
- 
--- ---------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- 4) SUBCONSULTA CORRELACIONADA
--- Lotes cujo custo de produção é maior que a média dos custos dos
--- lotes do mesmo produtor.
+-- Lotes cujo preço por unidade (custo_producao / quantidade) é maior
+-- que a média do preço por unidade dos lotes do mesmo produtor.
 --
 -- Eficiência: subconsulta reexecutada por linha externa — idx_lote_produto_produtor
 --   garante Index Scan ao invés de Seq Scan. Custo alto se poucos produtores com
@@ -154,14 +153,16 @@ SELECT
     lp.id_lote,
     lp.produto,
     lp.produtor,
-    lp.custo_producao
+    lp.custo_producao,
+    lp.quantidade,
+    lp.custo_producao / lp.quantidade AS preco_por_unidade
 FROM Lote_de_Produto lp
-WHERE lp.custo_producao > (
-    SELECT AVG(lp2.custo_producao)
+WHERE (lp.custo_producao / lp.quantidade) > (
+    SELECT AVG(lp2.custo_producao / lp2.quantidade)
     FROM Lote_de_Produto lp2
     WHERE lp2.produtor = lp.produtor   -- referência à linha externa: torna a subconsulta correlacionada
 )
-ORDER BY lp.produtor, lp.custo_producao DESC;
+ORDER BY lp.produtor, preco_por_unidade DESC;
  
  
 -- ---------------------------------------------------------------------
