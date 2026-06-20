@@ -127,8 +127,13 @@ def criar_lote():
                 ),
             )
             novo_lote = cursor.fetchone()
-    except errors.ForeignKeyViolation:
-        return jsonify({"erro": "Produtor não encontrado."}), 404
+    except errors.ForeignKeyViolation as erro:
+        constraint = erro.diag.constraint_name
+        if constraint == "fk_lote_produto_produto":
+            return jsonify({"erro": "Produto não encontrado."}), 404
+        if constraint == "fk_lote_produto_produtor":
+            return jsonify({"erro": "Produtor não encontrado."}), 404
+        return jsonify({"erro": "Referência inválida."}), 404
 
     return jsonify({"id_lote": novo_lote["id_lote"]}), 201
 

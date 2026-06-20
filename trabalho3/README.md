@@ -48,7 +48,7 @@ trabalho3/
 ├── docs/                   # Documentação
 │   └── Relatorio.pdf        # Relatório do grupo
 │
-├── requirements.txt        # Dependências Python (Flask, psycopg2, SQLAlchemy)
+├── requirements.txt        # Dependências Python (Flask, psycopg2)
 └── .gitignore
 ```
 
@@ -118,9 +118,11 @@ docker run --name sos-abobrinha-db \
   -e POSTGRES_USER=sos_abobrinha \
   -e POSTGRES_PASSWORD=senha_segura \
   -e POSTGRES_DB=banco_trabalho \
-  -p 5432:5432 \
+  -p 5433:5432 \
   -d postgres:16
 ```
+
+> Usamos a porta **5433** no host (em vez da padrão 5432) porque é comum já existir um PostgreSQL local escutando em 5432 — mapear o container nessa mesma porta causaria erro de "porta já em uso". Se usar esta opção, exporte `DB_PORT=5433` no passo 2.
 
 ### 2. Variáveis de ambiente
 
