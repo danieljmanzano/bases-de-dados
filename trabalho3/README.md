@@ -173,7 +173,7 @@ Acesse o sistema em **[http://localhost:5000](http://localhost:5000)**.
 
 | Camada | Tecnologia |
 |--------|------------|
-| **Backend** | Python 3 · Flask 3.1 |
+| **Backend** | Python 3 · Flask 3.0.3 |
 | **Banco de dados** | PostgreSQL 14+ · psycopg2 |
 | **Frontend** | HTML5 · CSS3 (vanilla) · JavaScript (vanilla) |
 
