@@ -88,7 +88,7 @@ ORDER BY p.nome;
 --
 -- Parâmetro: id do lote -> 'LOTE-0001' (ajuste conforme necessário)
 -- ---------------------------------------------------------------------
-SELECT 
+SELECT DISTINCT
         b.cnpj,
         b.nome,
         b.classificacao
