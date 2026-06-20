@@ -39,8 +39,20 @@ DROP TABLE IF EXISTS Produto;
 CREATE TABLE Produto (
     nome   VARCHAR(50)    NOT NULL,
     tipo   VARCHAR(50)    NOT NULL,
+
     CONSTRAINT pk_produto 
         PRIMARY KEY (nome)
+
+    CONSTRAINT ck_produto_tipo CHECK (UPPER(tipo) IN (
+        'HORTALIÇA',
+        'TUBÉRCULO',
+        'LEGUMINOSA',
+        'FRUTA',
+        'CEREAL',
+        'GRÃO',
+        'ADUBO',
+        'RAÇÃO'
+    ))
 );
 
 
@@ -50,7 +62,7 @@ CREATE TABLE Produtor_Rural (
     nro                     INT             NOT NULL,
     rua                     VARCHAR(100)    NOT NULL,
     complemento             VARCHAR(100),
-    contato                 VARCHAR(50)     NOT NULL, -- telefone ou email, dependendo do tipo de contato fornecido
+    contato                 VARCHAR(50)     NOT NULL, -- email
     nome                    VARCHAR(100)    NOT NULL,
     bool_compostagem        BOOLEAN DEFAULT FALSE,
     bool_consumo_animal     BOOLEAN DEFAULT FALSE,
@@ -66,7 +78,10 @@ CREATE TABLE Produtor_Rural (
         CHECK (CHAR_LENGTH(cep) = 8),
     
     CONSTRAINT ck_produtor_rural_nro 
-        CHECK (nro > 0) -- nro de endereço não pode ser negativo
+        CHECK (nro > 0), -- nro de endereço não pode ser negativo
+
+    CONSTRAINT ck_produtor_rural_contato
+        CHECK (contato LIKE '%@%') -- valida se tem '@' no email
 );
 
 
@@ -93,6 +108,9 @@ CREATE TABLE Transportadora (
 
     CONSTRAINT ck_transportadora_nro 
         CHECK (nro > 0)
+
+    CONSTRAINT ck_transportadora_contato
+        CHECK (contato LIKE '%@%') 
 );
 
 
@@ -125,6 +143,9 @@ CREATE TABLE Beneficiario (
             'PEQUENO PECUARISTA', 
             'INSTITUIÇÃO SOCIAL'
         ))
+
+    CONSTRAINT ck_beneficiario_contato
+        CHECK (contato LIKE '%@%') 
 );
 
 
@@ -138,6 +159,9 @@ CREATE TABLE Filantropo (
 
     CONSTRAINT ck_filantropo_cpf_len
         CHECK (CHAR_LENGTH(cpf) = 11)
+
+    CONSTRAINT ck_filantropo_contato
+        CHECK (contato LIKE '%@%') 
 );
 
 
@@ -456,6 +480,15 @@ CREATE TABLE Centro_Beneficiamento_Distribuicao (
         FOREIGN KEY (cep, nro, rua) REFERENCES Centro_Logistico(cep, nro, rua)
         ON DELETE CASCADE -- por ser uma tabela de especialização, deve ser apagada caso o centro logístico seja removido
                           -- o mesmo vale para as demais tabelas de especialização de centro logístico
+
+    CONSTRAINT ck_centro_beneficiamento_capacidade 
+        CHECK (capacidade > 0),  -- capacidade deve ser maior que 0
+
+    CONSTRAINT ck_centro_beneficiamento_ocupacao 
+        CHECK (ocupacao >= 0 AND ocupacao <= capacidade), -- ocupacao deve estar entre 0 e capacidade
+
+    CONSTRAINT ck_centro_beneficiamento_contato
+        CHECK (contato LIKE '%@%')
 );
 
 CREATE TABLE Armazem (
@@ -473,6 +506,15 @@ CREATE TABLE Armazem (
     CONSTRAINT fk_armazem_logistico
         FOREIGN KEY (cep, nro, rua) REFERENCES Centro_Logistico(cep, nro, rua)
         ON DELETE CASCADE
+
+    CONSTRAINT ck_armazem_capacidade 
+        CHECK (capacidade > 0),  
+
+    CONSTRAINT ck_armazem_ocupacao 
+        CHECK (ocupacao >= 0 AND ocupacao <= capacidade),
+
+    CONSTRAINT ck_armazem_contato
+        CHECK (contato LIKE '%@%')
 );
 
 CREATE TABLE Centro_Compostagem (
@@ -490,6 +532,15 @@ CREATE TABLE Centro_Compostagem (
     CONSTRAINT fk_centro_compostagem_logistico
         FOREIGN KEY (cep, nro, rua) REFERENCES Centro_Logistico(cep, nro, rua)
         ON DELETE CASCADE
+
+    CONSTRAINT ck_centro_compostagem_capacidade 
+        CHECK (capacidade > 0),  
+
+    CONSTRAINT ck_centro_compostagem_ocupacao 
+        CHECK (ocupacao >= 0 AND ocupacao <= capacidade), 
+
+    CONSTRAINT ck_centro_compostagem_contato
+        CHECK (contato LIKE '%@%')
 );
 --------------------------------------------------------------------------------------------
 
