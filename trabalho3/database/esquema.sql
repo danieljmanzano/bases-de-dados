@@ -146,6 +146,14 @@ CREATE TABLE Beneficiario (
 
     CONSTRAINT ck_beneficiario_contato
         CHECK (contato LIKE '%@%') 
+
+    CONSTRAINT ck_beneficiario_validacao_elegibilidade
+        CHECK (UPPER(validacao_elegibilidade) IN (
+            'APROVADA',
+            'REPROVADA',
+            'PENDENTE', -- 'pendente' indica que não começou a ser validado ainda
+            'EM ANALISE' -- 'em analise' indica que está no processo de validação
+        ))
 );
 
 
@@ -189,10 +197,10 @@ CREATE TABLE Centro_Logistico (
     CONSTRAINT pk_centro_logistico 
         PRIMARY KEY (cep, nro, rua),
 
-    CONSTRAINT chk_centro_logistico_cep_len 
+    CONSTRAINT ck_centro_logistico_cep_len 
         CHECK (CHAR_LENGTH(cep) = 8),
     
-    CONSTRAINT chk_centro_logistico_nro 
+    CONSTRAINT ck_centro_logistico_nro 
         CHECK (nro > 0)
 );
 
@@ -214,17 +222,8 @@ CREATE TABLE Funcionario (
         FOREIGN KEY (id_conta) REFERENCES Conta_Bancaria(id_conta)
         ON DELETE SET NULL, -- o funcionário é mantido sem conta
 
-    CONSTRAINT chk_funcionario_cpf_len 
-        CHECK (CHAR_LENGTH(cpf) = 11),
-
-    CONSTRAINT chk_funcionario_funcao -- definição da especialização do funcionário
-        CHECK (UPPER(funcao) IN (
-            'TRIAGEM', 
-            'DISTRIBUIÇÃO', 
-            'REGULARIZAÇÃO', 
-            'FINANÇAS', 
-            'ADMINISTRAÇÃO'
-        )) 
+    CONSTRAINT ck_funcionario_cpf_len 
+        CHECK (CHAR_LENGTH(cpf) = 11)
 );
 
 
@@ -234,7 +233,7 @@ CREATE TABLE Transporte (
     transportadora              VARCHAR(14)     NOT NULL,
     data_entrega                TIMESTAMP,               
     custo                       DECIMAL(10, 2)  NOT NULL, 
-    tipo                        VARCHAR(20),
+    tipo                        VARCHAR(10),
     origem                      VARCHAR(255)    NOT NULL,
     destino                     VARCHAR(255)    NOT NULL,
     responsavel_distribuicao    VARCHAR(11), 
@@ -246,7 +245,7 @@ CREATE TABLE Transporte (
 
     CONSTRAINT fk_transporte_transportadora 
         FOREIGN KEY (transportadora) REFERENCES Transportadora(cnpj)
-        ON DELETE RESTRICT, -- mantém o histórico de transportes mesmo que a transportadora seja removida
+        ON DELETE RESTRICT, -- deve haver um tratamento específico sobre transportes registrados cuja transportadora tenha sido removida
 
     CONSTRAINT fk_transporte_funcionario 
         FOREIGN KEY (responsavel_distribuicao) REFERENCES Funcionario(cpf)
@@ -296,11 +295,11 @@ CREATE TABLE Lote_de_Produto (
 
     CONSTRAINT fk_lote_produto_produto 
         FOREIGN KEY (produto) REFERENCES Produto(nome)
-        ON DELETE RESTRICT, -- mantém o histórico de lotes mesmo que o produto seja removido
+        ON DELETE RESTRICT, -- deve haver um tratamento específico sobre lotes registrados cujo produto tenha sido removido
 
     CONSTRAINT fk_lote_produto_produtor 
         FOREIGN KEY (produtor) REFERENCES Produtor_Rural(cpf)
-        ON DELETE RESTRICT, -- mantém o histórico de lotes mesmo que o produtor seja removido
+        ON DELETE RESTRICT, -- deve haver um tratamento específico sobre lotes registrados cujo produtor tenha sido removido
 
     CONSTRAINT fk_lote_produto_conta 
         FOREIGN KEY (conta_bancaria) REFERENCES Conta_Bancaria(id_conta)
@@ -358,6 +357,14 @@ CREATE TABLE Solicitacao_de_Aquisicao (
 
     CONSTRAINT ck_solicitacao_custo 
         CHECK (custo_parcial >= 0)
+
+    CONSTRAINT ck_solicitacao_validacao
+        CHECK (UPPER(validacao) IN (
+            'APROVADA',
+            'REPROVADA',
+            'PENDENTE',
+            'EM ANALISE'
+        ))
 );
 
 
