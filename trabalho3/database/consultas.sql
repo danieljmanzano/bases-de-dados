@@ -58,7 +58,7 @@ ORDER BY lp.data_hora_cadastro DESC;
 --   utilizar o indice para busca  
 -- ---------------------------------------------------------------------
 SELECT
-    p.nome                                  AS produto,
+    p.nome                                  AS produto, 
     SUM(req_por_lote.quantidade_requisitada) AS quantidade_total_adquirida,
     SUM(lp.quantidade)                       AS quantidade_total_cadastrada
 FROM Produto p
@@ -71,11 +71,8 @@ LEFT JOIN (
         r.lote,
         SUM(r.porcao_lote) AS quantidade_requisitada
     FROM Requisita r
-    JOIN Solicitacao_de_Aquisicao sa
-        ON sa.data_hora    = r.data_hora_aquisicao
-       AND sa.beneficiario = r.beneficiario
-    WHERE sa.data_hora >= '2024-06-01'
-      AND sa.data_hora <  '2024-07-01'
+    WHERE r.data_hora_aquisicao >= '2024-06-01'
+      AND r.data_hora_aquisicao <  '2024-07-01'
     GROUP BY r.lote
 ) req_por_lote
     ON req_por_lote.lote = lp.id_lote
