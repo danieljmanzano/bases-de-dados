@@ -172,11 +172,10 @@ ORDER BY lp.produtor, preco_por_unidade DESC;
 SELECT
     b.cnpj,
     b.nome
-FROM Beneficiario b
-WHERE b.cnpj NOT IN (
-    SELECT sa.beneficiario
-    FROM Solicitacao_de_Aquisicao sa
-);
+FROM Beneficiario b LEFT JOIN Solicitacao_de_Aquisicao sa 
+ON b.cnpj = sa.Beneficiario
+GROUP BY b.cnpj
+HAVING COUNT(sa.beneficiario)=0
  
 -- Versão equivalente com NOT EXISTS (mais segura contra NULLs):
 -- SELECT b.cnpj, b.nome
