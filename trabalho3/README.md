@@ -9,14 +9,14 @@ Sistema de redistribuição de excedentes agrícolas (frontend + API Flask + Pos
 
 ## 1. Banco de dados
 
-Crie um usuário e um banco dedicados ao projeto no seu PostgreSQL local:
+### Opção A: PostgreSQL local
+
+Crie um usuário e um banco dedicados ao projeto no seu PostgreSQL local (porta padrão 5432):
 
 ```bash
 sudo -u postgres psql -c "CREATE USER sos_abobrinha WITH PASSWORD 'senha_segura';"
 sudo -u postgres psql -c "CREATE DATABASE banco_trabalho OWNER sos_abobrinha;"
 ```
-
-Depois, exporte as variáveis de ambiente apontando para o seu Postgres (ajuste host/porta/usuário/senha conforme o seu ambiente):
 
 ```bash
 export DB_HOST=localhost
@@ -26,6 +26,8 @@ export DB_USER=sos_abobrinha
 export DB_PASSWORD=senha_segura
 ```
 
+### Opção B: Docker
+
 Prefere usar Docker em vez de um Postgres local? Suba um container já com essas credenciais:
 
 ```bash
@@ -33,9 +35,19 @@ docker run --name sos-abobrinha-db \
   -e POSTGRES_USER=sos_abobrinha \
   -e POSTGRES_PASSWORD=senha_segura \
   -e POSTGRES_DB=banco_trabalho \
-  -p 5432:5432 \
+  -p 5433:5432 \
   -d postgres:16
 ```
+
+```bash
+export DB_HOST=localhost
+export DB_PORT=5433
+export DB_NAME=banco_trabalho
+export DB_USER=sos_abobrinha
+export DB_PASSWORD=senha_segura
+```
+
+Usamos a porta **5433** no host para o container, em vez da padrão 5432, porque é comum já existir um PostgreSQL local instalado e escutando em 5432 — mapear o container nessa mesma porta causaria erro de "porta já em uso". Ajuste host/porta/usuário/senha de qualquer uma das opções acima conforme o seu ambiente.
 
 ## 2. Ambiente Python
 

@@ -54,8 +54,8 @@ ORDER BY lp.data_hora_cadastro DESC;
 --   adquirida (via Requisita) e a quantidade total distribuída/cadastrada
 --   em um determinado mês.
 --
--- Eficiência: o filtro de mês usa um intervalo (>= / <) como isso é possivel 
---   utilizar o indice para busca  
+-- Eficiência: o filtro de mês usa um intervalo (>= / <) em vez de
+--   TO_CHAR(coluna, 'YYYY-MM'), para que seja possível usar o índice na busca.
 -- ---------------------------------------------------------------------
 SELECT
     p.nome                                  AS produto,
