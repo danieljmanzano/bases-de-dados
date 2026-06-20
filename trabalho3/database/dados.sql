@@ -23,9 +23,9 @@ INSERT INTO Produto (nome, tipo) VALUES
 INSERT INTO Produtor_Rural
     (cpf, cep, nro, rua, contato, nome, bool_compostagem, bool_consumo_animal, bool_consumo_humano)
 VALUES
-    ('12345678900', '13560000', 100, 'Rua das Flores',   '(16) 99999-0001', 'João da Silva Agropecuária', FALSE, FALSE,  TRUE),
-    ('11111111111', '13561000', 200, 'Estrada do Campo', '(16) 99999-0002', 'Maria Oliveira Farming',     FALSE,  TRUE, FALSE),
-    ('22222222222', '13562000', 300, 'Rodovia Rural',    '(16) 99999-0003', 'Carlos Souza Produções',     TRUE,  FALSE,  FALSE);
+    ('12345678900', '13560000', 100, 'Rua das Flores',   'produtor1@email.com', 'João da Silva Agropecuária', FALSE, FALSE,  TRUE),
+    ('11111111111', '13561000', 200, 'Estrada do Campo', 'produtor2@email.com', 'Maria Oliveira Farming',     FALSE,  TRUE, FALSE),
+    ('22222222222', '13562000', 300, 'Rodovia Rural',    'produtor3@email.com', 'Carlos Souza Produções',     TRUE,  FALSE,  FALSE);
 
 
 -- 3) Transportadora
@@ -34,8 +34,8 @@ VALUES
 INSERT INTO Transportadora
     (cnpj, cep, nro, rua, contato, bool_caminhao, bool_van, bool_carro, bool_barco)
 VALUES
-    ('11222333000144', '13570000', 10, 'Avenida dos Transportes', '(16) 98888-0001', TRUE,  TRUE,  FALSE, FALSE),
-    ('22333444000155', '13571000', 20, 'Rua das Carretas',        '(16) 98888-0002', FALSE, FALSE, TRUE,  TRUE);
+    ('11222333000144', '13570000', 10, 'Avenida dos Transportes', 'transportadora1@email.com', TRUE,  TRUE,  FALSE, FALSE),
+    ('22333444000155', '13571000', 20, 'Rua das Carretas',        'transportadora2@email.com', FALSE, FALSE, TRUE,  TRUE);
 
 
 -- 4) Beneficiário
@@ -43,17 +43,17 @@ VALUES
 -- um pequeno agricultor (compostagem), cobrindo as 3 classificações válidas.
 --------------------------------------------------------------------------------------------
 INSERT INTO Beneficiario (cnpj, cep, nro, rua, contato, nome, classificacao, validacao_elegibilidade) VALUES
-    ('11111111000111', '13580000', 1,  'Rua da Esperança',  '(16) 97777-0001', 'Instituição Social Esperança', 'INSTITUIÇÃO SOCIAL',  'Certificado de utilidade pública nº 001/2025'),
-    ('22222222000122', '13581000', 2,  'Sítio Recomeço',    '(16) 97777-0002', 'Sítio Recomeço',                'PEQUENO PECUARISTA',  'Declaração de aptidão ao PRONAF nº 045/2025'),
-    ('33333333000133', '13582000', 3,  'Chácara Boa Terra', '(16) 97777-0003', 'Chácara Boa Terra',             'PEQUENO AGRICULTOR',  'Declaração de aptidão ao PRONAF nº 078/2025');
+    ('11111111000111', '13580000', 1,  'Rua da Esperança',  'beneficiario1@email.com', 'Instituição Social Esperança', 'INSTITUIÇÃO SOCIAL',  'Aprovada'),
+    ('22222222000122', '13581000', 2,  'Sítio Recomeço',    'beneficiario2@email.com', 'Sítio Recomeço',                'PEQUENO PECUARISTA',  'Aprovada'),
+    ('33333333000133', '13582000', 3,  'Chácara Boa Terra', 'beneficiario3@email.com', 'Chácara Boa Terra',             'PEQUENO AGRICULTOR',  'Aprovada');
 
 
 -- 5) Filantropo
 -- Pessoa física realizando doações financeiras.
 --------------------------------------------------------------------------------------------
 INSERT INTO Filantropo (cpf, contato, nome) VALUES
-    ('33344455566', '(16) 96666-0001', 'Fernanda Lima'),
-    ('44455566011', '(16) 96666-0002', 'Instituto Verde Doações');
+    ('33344455566', 'filantropo1@email.com', 'Fernanda Lima'),
+    ('44455566011', 'filantropo2@email.com', 'Instituto Verde Doações');
 
 
 -- 6) Conta Bancária
@@ -144,22 +144,22 @@ VALUES
 -- 11) Centro de Beneficiamento e Distribuição (especialização de Centro Logístico)
 --------------------------------------------------------------------------------------------
 INSERT INTO Centro_Beneficiamento_Distribuicao (cep, nro, rua, complemento, contato, capacidade, ocupacao) VALUES
-    ('13560100', 10, 'Avenida Central',       NULL,        '(16) 3333-0001', 5000.00, 1200.00),
-    ('13560200', 20, 'Rua do Beneficiamento', 'Galpão 2',  '(16) 3333-0002', 4000.00, 800.00);
+    ('13560100', 10, 'Avenida Central',       NULL,        'centro_beneficiamento1@email.com', 5000.00, 1200.00),
+    ('13560200', 20, 'Rua do Beneficiamento', 'Galpão 2',  'centro_beneficiamento2@email.com', 4000.00, 800.00);
 
 
 -- 12) Armazém (especialização de Centro Logístico)
 --------------------------------------------------------------------------------------------
 INSERT INTO Armazem (cep, nro, rua, complemento, contato, capacidade, ocupacao) VALUES
-    ('13561100', 30, 'Rua dos Armazéns', NULL,     '(16) 3333-0003', 8000.00, 3000.00),
-    ('13561200', 40, 'Estrada do Silo',  'Silo B', '(16) 3333-0004', 6000.00, 1500.00);
+    ('13561100', 30, 'Rua dos Armazéns', NULL,     'armazem1@email.com', 8000.00, 3000.00),
+    ('13561200', 40, 'Estrada do Silo',  'Silo B', 'armazem2@email.com', 6000.00, 1500.00);
 
 
 -- 13) Centro de Compostagem (especialização de Centro Logístico)
 --------------------------------------------------------------------------------------------
 INSERT INTO Centro_Compostagem (cep, nro, rua, complemento, contato, capacidade, ocupacao) VALUES
-    ('13562100', 50, 'Rua da Compostagem', NULL, '(16) 3333-0005', 3000.00, 500.00),
-    ('13562200', 60, 'Sítio do Adubo',     NULL, '(16) 3333-0006', 2500.00, 300.00);
+    ('13562100', 50, 'Rua da Compostagem', NULL, 'centro_compostagem1@email.com', 3000.00, 500.00),
+    ('13562200', 60, 'Sítio do Adubo',     NULL, 'centro_compostagem2@email.com', 2500.00, 300.00);
 
 
 -- 14) Lote Consumo Humano (especialização de Lote de Produto)
@@ -245,17 +245,17 @@ VALUES ('66666666666', '66666666', 66, 'Rua Nova C', 'pedrol@teste.com', 'Pedro 
 
 -- Beneficiários novos, exclusivos destes testes.
 INSERT INTO Beneficiario (cnpj, cep, nro, rua, contato, nome, classificacao, validacao_elegibilidade)
-VALUES ('77777777000177', '70000000', 1, 'Rua das Flores (Teste)', 'inst1@teste.com', 'Instituto Esperança (Teste)', 'INSTITUIÇÃO SOCIAL', 'Documentação validada');
+VALUES ('77777777000177', '70000000', 1, 'Rua das Flores (Teste)', 'inst1@teste.com', 'Instituto Esperança (Teste)', 'INSTITUIÇÃO SOCIAL', 'Aprovada');
 INSERT INTO Beneficiario (cnpj, cep, nro, rua, contato, nome, classificacao, validacao_elegibilidade)
-VALUES ('88888888000188', '80000000', 2, 'Rua dos Lírios (Teste)', 'sitio2@teste.com', 'Sítio Bom Plantio (Teste)', 'PEQUENO AGRICULTOR', 'Documentação validada');
+VALUES ('88888888000188', '80000000', 2, 'Rua dos Lírios (Teste)', 'sitio2@teste.com', 'Sítio Bom Plantio (Teste)', 'PEQUENO AGRICULTOR', 'Aprovada');
 INSERT INTO Beneficiario (cnpj, cep, nro, rua, contato, nome, classificacao, validacao_elegibilidade)
-VALUES ('99999999000199', '90000000', 3, 'Rua das Acácias (Teste)', 'fazenda3@teste.com', 'Fazenda Dois Irmãos (Teste)', 'PEQUENO PECUARISTA', 'Documentação validada');
+VALUES ('99999999000199', '90000000', 3, 'Rua das Acácias (Teste)', 'fazenda3@teste.com', 'Fazenda Dois Irmãos (Teste)', 'PEQUENO PECUARISTA', 'Aprovada');
 INSERT INTO Beneficiario (cnpj, cep, nro, rua, contato, nome, classificacao, validacao_elegibilidade)
-VALUES ('10101010000110', '11100000', 4, 'Rua dos Ipês (Teste)', 'assoc4@teste.com', 'Associação Mãos Unidas (Teste)', 'INSTITUIÇÃO SOCIAL', 'Documentação validada');
+VALUES ('10101010000110', '11100000', 4, 'Rua dos Ipês (Teste)', 'assoc4@teste.com', 'Associação Mãos Unidas (Teste)', 'INSTITUIÇÃO SOCIAL', 'Aprovada');
 INSERT INTO Beneficiario (cnpj, cep, nro, rua, contato, nome, classificacao, validacao_elegibilidade)
-VALUES ('12121212000112', '12200000', 5, 'Rua das Palmeiras (Teste)', 'coop5@teste.com', 'Cooperativa Vida Nova (Teste)', 'INSTITUIÇÃO SOCIAL', 'Documentação validada');
+VALUES ('12121212000112', '12200000', 5, 'Rua das Palmeiras (Teste)', 'coop5@teste.com', 'Cooperativa Vida Nova (Teste)', 'INSTITUIÇÃO SOCIAL', 'Aprovada');
 INSERT INTO Beneficiario (cnpj, cep, nro, rua, contato, nome, classificacao, validacao_elegibilidade)
-VALUES ('13131313000113', '13300000', 6, 'Rua dos Cedros (Teste)', 'lar6@teste.com', 'Lar dos Idosos Pôr do Sol (Teste)', 'INSTITUIÇÃO SOCIAL', 'Documentação validada');
+VALUES ('13131313000113', '13300000', 6, 'Rua dos Cedros (Teste)', 'lar6@teste.com', 'Lar dos Idosos Pôr do Sol (Teste)', 'INSTITUIÇÃO SOCIAL', 'Aprovada');
 
 
 -- (1) GROUP BY + JOIN | deveria entrar no total de "quantidade cadastrada" de Tomate em 2024-06

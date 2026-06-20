@@ -38,10 +38,10 @@ DROP TABLE IF EXISTS Produto;
 --------------------------------------------------------------------------------------------
 CREATE TABLE Produto (
     nome   VARCHAR(50)    NOT NULL,
-    tipo   VARCHAR(50)    NOT NULL,
+    tipo   VARCHAR(20)    NOT NULL,
 
     CONSTRAINT pk_produto 
-        PRIMARY KEY (nome)
+        PRIMARY KEY (nome),
 
     CONSTRAINT ck_produto_tipo CHECK (UPPER(tipo) IN (
         'HORTALIÇA',
@@ -107,7 +107,7 @@ CREATE TABLE Transportadora (
         CHECK (CHAR_LENGTH(cep) = 8),
 
     CONSTRAINT ck_transportadora_nro 
-        CHECK (nro > 0)
+        CHECK (nro > 0),
 
     CONSTRAINT ck_transportadora_contato
         CHECK (contato LIKE '%@%') 
@@ -142,10 +142,10 @@ CREATE TABLE Beneficiario (
             'PEQUENO AGRICULTOR', 
             'PEQUENO PECUARISTA', 
             'INSTITUIÇÃO SOCIAL'
-        ))
+        )),
 
     CONSTRAINT ck_beneficiario_contato
-        CHECK (contato LIKE '%@%') 
+        CHECK (contato LIKE '%@%'), 
 
     CONSTRAINT ck_beneficiario_validacao_elegibilidade
         CHECK (UPPER(validacao_elegibilidade) IN (
@@ -166,7 +166,7 @@ CREATE TABLE Filantropo (
         PRIMARY KEY (cpf),
 
     CONSTRAINT ck_filantropo_cpf_len
-        CHECK (CHAR_LENGTH(cpf) = 11)
+        CHECK (CHAR_LENGTH(cpf) = 11),
 
     CONSTRAINT ck_filantropo_contato
         CHECK (contato LIKE '%@%') 
@@ -178,13 +178,13 @@ CREATE TABLE Conta_Bancaria (
     codigo_banco    VARCHAR(10)     NOT NULL,
     nro_conta       VARCHAR(20)     NOT NULL,
     nro_agencia     VARCHAR(10)     NOT NULL,
-    tipo            VARCHAR(50)     NOT NULL,
+    tipo            VARCHAR(9)     NOT NULL,
 
     CONSTRAINT pk_conta_bancaria 
         PRIMARY KEY (id_conta),
 
     CONSTRAINT unq_conta_bancaria 
-        UNIQUE (codigo_banco, nro_conta, nro_agencia)
+        UNIQUE (codigo_banco, nro_conta, nro_agencia),
 
     CONSTRAINT ck_conta_bancaria_tipo
         CHECK (UPPER(tipo) IN (
@@ -309,7 +309,7 @@ CREATE TABLE Transporte (
     transportadora              VARCHAR(14)     NOT NULL,
     data_entrega                TIMESTAMP,               
     custo                       DECIMAL(10, 2)  NOT NULL, 
-    tipo                        VARCHAR(10),
+    tipo                        VARCHAR(11),
     origem                      VARCHAR(255)    NOT NULL,
     destino                     VARCHAR(255)    NOT NULL,
     responsavel_distribuicao    VARCHAR(11), 
@@ -432,7 +432,7 @@ CREATE TABLE Solicitacao_de_Aquisicao (
         ON DELETE SET NULL,
 
     CONSTRAINT ck_solicitacao_custo 
-        CHECK (custo_parcial >= 0)
+        CHECK (custo_parcial >= 0),
 
     CONSTRAINT ck_solicitacao_validacao
         CHECK (UPPER(validacao) IN (
