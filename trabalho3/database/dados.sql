@@ -189,10 +189,10 @@ INSERT INTO Lote_Compostagem (lote, cep, nro, rua) VALUES
 INSERT INTO Solicitacao_de_Aquisicao
     (data_hora, beneficiario, declaracao_finalidade, validacao, custo_parcial, responsavel_regularizacao)
 VALUES
-    ('2026-05-05 10:00:00', '11111111000111',
+    ('2026-05-01 10:00:00', '11111111000111',
      'Distribuição de alimentos para famílias atendidas pela instituição', 'APROVADA', 90.00, '30303030303'),
 
-    ('2026-05-06 11:00:00', '22222222000122',
+    ('2026-05-02 11:00:00', '22222222000122',
      'Alimentação de gado leiteiro mantido no sítio', 'APROVADA', 32.50, '30303030303');
 
 
@@ -203,20 +203,20 @@ INSERT INTO Lote_de_Entrega
     (data_hora_aquisicao, beneficiario, custo_total, tamanho_total, status_entrega,
      conta_pagamento, nota_fiscal, placa_veiculo, data_hora_coleta)
 VALUES
-    ('2026-05-05 10:00:00', '11111111000111', 150.00, 100.00, 'ENTREGUE',
+    ('2026-05-01 10:00:00', '11111111000111', 150.00, 100.00, 'ENTREGUE',
      'CTA-0002', 'NF-E-0001', 'GHI9012', '2026-05-03 10:00:00'),
 
-    ('2026-05-06 11:00:00', '22222222000122', 120.00, 150.00, 'EM ROTA',
+    ('2026-05-02 11:00:00', '22222222000122', 120.00, 150.00, 'EM ROTA',
      'CTA-0002', 'NF-E-0002', 'JKL3456', '2026-05-04 11:00:00');
 
 
 -- 19) Requisita (relacionamento N:N entre Solicitação de Aquisição e Lote de Produto)
 --------------------------------------------------------------------------------------------
 INSERT INTO Requisita (data_hora_aquisicao, beneficiario, lote, porcao_lote) VALUES
-    ('2026-05-05 10:00:00', '11111111000111', 'LOTE-0001', 100.00),
-    ('2026-05-05 10:00:00', '11111111000111', 'LOTE-0002', 80.00),
-    ('2026-05-06 11:00:00', '22222222000122', 'LOTE-0003', 100.00),
-    ('2026-05-06 11:00:00', '22222222000122', 'LOTE-0004', 75.00);
+    ('2026-05-01 10:00:00', '11111111000111', 'LOTE-0001', 100.00),
+    ('2026-05-01 10:00:00', '11111111000111', 'LOTE-0002', 80.00),
+    ('2026-05-02 11:00:00', '22222222000122', 'LOTE-0003', 100.00),
+    ('2026-05-02 11:00:00', '22222222000122', 'LOTE-0004', 75.00);
 
 
 -- 20) Titular (atributo multivalorado de Conta Bancária)
