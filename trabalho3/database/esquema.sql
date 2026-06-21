@@ -38,7 +38,7 @@ DROP TABLE IF EXISTS Produto;
 --------------------------------------------------------------------------------------------
 CREATE TABLE Produto (
     nome   VARCHAR(50)    NOT NULL,
-    tipo   VARCHAR(20)    NOT NULL,
+    tipo   VARCHAR(20),
 
     CONSTRAINT pk_produto 
         PRIMARY KEY (nome),
@@ -91,7 +91,7 @@ CREATE TABLE Transportadora (
     nro                 INT             NOT NULL,
     rua                 VARCHAR(100)    NOT NULL,
     complemento         VARCHAR(100),
-    contato             VARCHAR(50)     NOT NULL,
+    contato             VARCHAR(50),
     bool_caminhao       BOOLEAN DEFAULT FALSE,
     bool_van            BOOLEAN DEFAULT FALSE,
     bool_carro          BOOLEAN DEFAULT FALSE,
@@ -122,7 +122,7 @@ CREATE TABLE Beneficiario (
     complemento             VARCHAR(100),
     contato                 VARCHAR(50)     NOT NULL,
     nome                    VARCHAR(100)    NOT NULL,
-    classificacao           VARCHAR(50)     NOT NULL,
+    classificacao           VARCHAR(50),
     validacao_elegibilidade VARCHAR(255)    NOT NULL,
 
     CONSTRAINT pk_beneficiario
@@ -159,8 +159,8 @@ CREATE TABLE Beneficiario (
 
 CREATE TABLE Filantropo (
     cpf         VARCHAR(11)     NOT NULL, -- somente CPF, filantropo é pessoa física
-    contato     VARCHAR(50)     NOT NULL,
-    nome        VARCHAR(100)    NOT NULL,
+    contato     VARCHAR(50),
+    nome        VARCHAR(100),
 
     CONSTRAINT pk_filantropo
         PRIMARY KEY (cpf),
@@ -287,7 +287,7 @@ CREATE TABLE Centro_Compostagem (
 --------------------------------------------------------------------------------------------
 CREATE TABLE Funcionario (
     cpf                     VARCHAR(11)     NOT NULL, 
-    funcao                  VARCHAR(50)     NOT NULL, 
+    funcao                  VARCHAR(50), 
     nome                    VARCHAR(100)    NOT NULL, 
     id_conta                VARCHAR(15),                      
 
@@ -308,7 +308,7 @@ CREATE TABLE Transporte (
     data_hora_coleta            TIMESTAMP       NOT NULL,
     transportadora              VARCHAR(14)     NOT NULL,
     data_entrega                TIMESTAMP,               
-    custo                       DECIMAL(10, 2)  NOT NULL, 
+    custo                       DECIMAL(10, 2), 
     tipo                        VARCHAR(11),
     origem                      VARCHAR(255)    NOT NULL,
     destino                     VARCHAR(255)    NOT NULL,
@@ -357,7 +357,7 @@ CREATE TABLE Lote_de_Produto (
     custo_producao              DECIMAL(10, 2),
     data_colheita               DATE,
     validade                    DATE,
-    quantidade                  DECIMAL(10, 2)  NOT NULL, -- quantidade em kg ou unidades, dependendo do tipo do produto
+    quantidade                  DECIMAL(10, 2), -- quantidade em kg ou unidades, dependendo do tipo do produto
     classificacao               VARCHAR(50),
     localizacao                 VARCHAR(255), -- isso seria como um gps sobre o lote
     placa_veiculo               VARCHAR(10),
@@ -421,7 +421,7 @@ CREATE INDEX idx_lote_produto_produtor ON Lote_de_Produto (produtor);
 CREATE TABLE Solicitacao_de_Aquisicao (
     data_hora                   TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     beneficiario                VARCHAR(14)     NOT NULL,
-    declaracao_finalidade       VARCHAR(255)    NOT NULL,
+    declaracao_finalidade       VARCHAR(255),
     validacao                   VARCHAR(50),
     custo_parcial               DECIMAL(10, 2),
     responsavel_regularizacao   VARCHAR(11),
