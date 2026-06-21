@@ -20,7 +20,7 @@ DROP TABLE IF EXISTS Doacao;
 DROP TABLE IF EXISTS Titular;
 
 DROP TABLE IF EXISTS Lote_de_Produto;
-DROP SEQUENCE IF EXISTS seq_lote_id; -- NÃO SEI SE PODE FAZER ISSO (VER LINHA 248)
+DROP SEQUENCE IF EXISTS seq_lote_id;
 DROP TABLE IF EXISTS Transporte;
 DROP TABLE IF EXISTS Funcionario;
 
@@ -86,12 +86,12 @@ CREATE TABLE Produtor_Rural (
 
 
 CREATE TABLE Transportadora (
-    cnpj                VARCHAR(14) NOT NULL,
-    cep                 VARCHAR(8) NOT NULL,
-    nro                 INT NOT NULL,
-    rua                 VARCHAR(100) NOT NULL,
+    cnpj                VARCHAR(14)     NOT NULL,
+    cep                 VARCHAR(8)      NOT NULL,
+    nro                 INT             NOT NULL,
+    rua                 VARCHAR(100)    NOT NULL,
     complemento         VARCHAR(100),
-    contato             VARCHAR(50) NOT NULL,
+    contato             VARCHAR(50)     NOT NULL,
     bool_caminhao       BOOLEAN DEFAULT FALSE,
     bool_van            BOOLEAN DEFAULT FALSE,
     bool_carro          BOOLEAN DEFAULT FALSE,
@@ -178,7 +178,7 @@ CREATE TABLE Conta_Bancaria (
     codigo_banco    VARCHAR(10)     NOT NULL,
     nro_conta       VARCHAR(20)     NOT NULL,
     nro_agencia     VARCHAR(10)     NOT NULL,
-    tipo            VARCHAR(9)     NOT NULL,
+    tipo            VARCHAR(9)      NOT NULL,
 
     CONSTRAINT pk_conta_bancaria 
         PRIMARY KEY (id_conta),
@@ -331,6 +331,9 @@ CREATE TABLE Transporte (
         FOREIGN KEY (conta_pagamento) REFERENCES Conta_Bancaria(id_conta)
         ON DELETE SET NULL,
 
+    CONSTRAINT ck_transporte_data 
+        CHECK (data_entrega >= data_hora_coleta),
+
     CONSTRAINT ck_transporte_custo 
         CHECK (custo >= 0),
 
@@ -400,7 +403,10 @@ CREATE TABLE Lote_de_Produto (
             'CONSUMO HUMANO',
             'CONSUMO ANIMAL',
             'COMPOSTAGEM'
-        ))
+        )),
+
+    CONSTRAINT ck_lote_produto_data
+        CHECK (data_hora_coleta >= data_hora_cadastro)
 );
 
 -- Índices de apoio às consultas de database/consultas.sql: filtro por
@@ -485,7 +491,10 @@ CREATE TABLE Lote_de_Entrega (
             'EM ROTA', 
             'ENTREGUE', 
             'CANCELADA'
-        ))
+        )),
+
+    CONSTRAINT ck_lote_entrega_data 
+        CHECK (data_hora_coleta >= data_hora_aquisicao)
 );
 
 
