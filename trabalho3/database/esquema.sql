@@ -12,6 +12,12 @@
 --    - Contatos: Validação de formato de e-mail (LIKE '%@%')
 --    - Capacidade/Ocupação: Valores numéricos; ocupação restrita ao limite da capacidade
 --    - Datas: Eventos seguintes ocorrem no mesmo instante ou após eventos anteriores
+--
+--  Entidades fracas / chaves compostas herdadas:
+--    - Solicitacao_de_Aquisicao é entidade fraca de Beneficiario: chave = (data_hora, beneficiario).
+--    - Lote_de_Entrega e Requisita são, por sua vez, entidades fracas/associativas que
+--      herdam essa mesma chave composta (data_hora_aquisicao, beneficiario) como parte
+--      da própria chave primária e como FK para Solicitacao_de_Aquisicao.
 -- ==============================================================================
 
 
@@ -47,9 +53,11 @@ DROP TABLE IF EXISTS Produtor_Rural;
 DROP TABLE IF EXISTS Produto;
 --------------------------------------------------------------------------------------------
 
-
 -- Tabelas que não possuem chaves estrangeiras
+
 --------------------------------------------------------------------------------------------
+
+-- Catálogo de produtos agrícolas (ex.: Alface, Milho) que podem compor um Lote_de_Produto.
 CREATE TABLE Produto (
     nome   VARCHAR(50)    NOT NULL,
     tipo   VARCHAR(20),
@@ -70,6 +78,7 @@ CREATE TABLE Produto (
 );
 
 
+-- Pessoa física que cadastra excedentes agrícolas (Lote_de_Produto) no sistema.
 CREATE TABLE Produtor_Rural (
     cpf                     VARCHAR(11)     NOT NULL, -- CPF: produtor rural é pessoa física
     cep                     VARCHAR(8)      NOT NULL,
@@ -99,6 +108,7 @@ CREATE TABLE Produtor_Rural (
 );
 
 
+-- Empresa responsável por executar os Transportes solicitados pela distribuição.
 CREATE TABLE Transportadora (
     cnpj                VARCHAR(14)     NOT NULL,
     cep                 VARCHAR(8)      NOT NULL,
@@ -128,6 +138,8 @@ CREATE TABLE Transportadora (
 );
 
 
+-- Organização (instituição social, pequeno agricultor ou pecuarista) que pode solicitar
+-- lotes correspondentes à sua classificação (ver Solicitacao_de_Aquisicao).
 CREATE TABLE Beneficiario (
     cnpj                    VARCHAR(14)     NOT NULL, -- CNPJ: beneficiário é sempre uma organização (instituição, sítio etc.)
     cep                     VARCHAR(8)      NOT NULL,
@@ -171,6 +183,7 @@ CREATE TABLE Beneficiario (
 );
 
 
+-- Pessoa física que realiza doações financeiras para as contas bancárias da empresa.
 CREATE TABLE Filantropo (
     cpf         VARCHAR(11)     NOT NULL, -- CPF: filantropo é pessoa física
     contato     VARCHAR(50),
@@ -187,6 +200,8 @@ CREATE TABLE Filantropo (
 );
 
 
+-- Conta da empresa usada para pagar produtores/transporte e receber doações e
+-- pagamentos de entregas. Pode ter mais de um titular (ver Titular).
 CREATE TABLE Conta_Bancaria (
     id_conta        VARCHAR(15)     NOT NULL,
     codigo_banco    VARCHAR(10)     NOT NULL,
@@ -209,6 +224,9 @@ CREATE TABLE Conta_Bancaria (
 );
 
 
+-- Generalização dos locais de armazenamento/processamento de lotes. tipo_produto indica
+-- qual especialização abaixo (Centro_Beneficiamento_Distribuicao, Armazem ou
+-- Centro_Compostagem) contém os demais atributos deste centro.
 CREATE TABLE Centro_Logistico (
     cep             VARCHAR(8)      NOT NULL,
     nro             INT             NOT NULL,
@@ -228,6 +246,7 @@ CREATE TABLE Centro_Logistico (
 
 -- Especializações de Centro Logístico
 
+-- Recebe e processa lotes 'CONSUMO HUMANO' antes da entrega a instituições sociais.
 CREATE TABLE Centro_Beneficiamento_Distribuicao (
     cep             VARCHAR(8)      NOT NULL,
     nro             INT             NOT NULL,
@@ -250,6 +269,7 @@ CREATE TABLE Centro_Beneficiamento_Distribuicao (
         CHECK (contato LIKE '%@%')
 );
 
+-- Recebe e armazena lotes 'CONSUMO ANIMAL' antes da entrega a pequenos pecuaristas.
 CREATE TABLE Armazem (
     cep             VARCHAR(8)      NOT NULL,
     nro             INT             NOT NULL,
@@ -272,6 +292,7 @@ CREATE TABLE Armazem (
         CHECK (contato LIKE '%@%')
 );
 
+-- Recebe lotes 'COMPOSTAGEM', processa o adubo resultante e o entrega a pequenos agricultores.
 CREATE TABLE Centro_Compostagem (
     cep             VARCHAR(8)      NOT NULL,
     nro             INT             NOT NULL,
@@ -296,9 +317,13 @@ CREATE TABLE Centro_Compostagem (
 
 --------------------------------------------------------------------------------------------
 
-
 -- Tabelas com FKs
+
 --------------------------------------------------------------------------------------------
+
+-- Generalização de todo funcionário da empresa. O atributo funcao (critério da
+-- especialização) determina o papel exercido: TRIAGEM, DISTRIBUIÇÃO, REGULARIZAÇÃO,
+-- FINANÇAS ou ADMINISTRAÇÃO. Apenas funcionários de FINANÇAS preenchem id_conta.
 CREATE TABLE Funcionario (
     cpf                     VARCHAR(11)     NOT NULL, 
     funcao                  VARCHAR(50), 
@@ -317,6 +342,10 @@ CREATE TABLE Funcionario (
 );
 
 
+-- Operação de transporte de RECEBIMENTO (produtor -> centro logístico) ou de
+-- ENTREGA (centro logístico -> beneficiário). Identificado pela combinação
+-- placa do veículo + data/hora de coleta (um veículo pode rodar mais de uma vez,
+-- desde que em horários de coleta diferentes).
 CREATE TABLE Transporte (
     placa_veiculo               VARCHAR(10)     NOT NULL,
     data_hora_coleta            TIMESTAMP       NOT NULL,
@@ -364,6 +393,11 @@ CREATE TABLE Transporte (
 -- colidir com os lotes LOTE-0001..LOTE-0006 inseridos por database/dados.sql.
 CREATE SEQUENCE seq_lote_id START WITH 7;
 
+-- Excedente agrícola cadastrado por um Produtor_Rural a partir de um Produto. Antes da
+-- triagem, classificacao/placa_veiculo/data_hora_coleta/etc. ficam nulos; após a
+-- classificação pelo funcionário de Triagem, o lote passa a ter uma linha correspondente
+-- em uma das especializações abaixo (Lote_Consumo_Humano, Lote_Consumo_Animal ou
+-- Lote_Compostagem), conforme a classificacao atribuída.
 CREATE TABLE Lote_de_Produto (
     id_lote                     VARCHAR(100)    NOT NULL,
     produto                     VARCHAR(50)     NOT NULL,
@@ -372,8 +406,7 @@ CREATE TABLE Lote_de_Produto (
     custo_producao              DECIMAL(10, 2),
     data_colheita               DATE,
     validade                    DATE,
-    quantidade                  DECIMAL(10, 2), -- Quantidade em kg ou unidades, dependendo do tipo do produto 
-    -- TODO: verificar emcima como é a definição de quantidade
+    quantidade                  DECIMAL(10, 2), -- Quantidade em kg ou unidades, dependendo do tipo do produto
     classificacao               VARCHAR(50),
     localizacao                 VARCHAR(255), -- GPS
     placa_veiculo               VARCHAR(10),
@@ -434,6 +467,9 @@ CREATE INDEX idx_lote_produto_data_cadastro ON Lote_de_Produto (data_hora_cadast
 CREATE INDEX idx_lote_produto_produtor ON Lote_de_Produto (produtor);
 
 
+-- Pedido de aquisição de um ou mais Lote_de_Produto feito por um Beneficiario.
+-- Entidade fraca de Beneficiario: a chave (data_hora, beneficiario) identifica o
+-- beneficiário que fez o pedido e o instante em que foi feito.
 CREATE TABLE Solicitacao_de_Aquisicao (
     data_hora                   TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     beneficiario                VARCHAR(14)     NOT NULL,
@@ -466,6 +502,9 @@ CREATE TABLE Solicitacao_de_Aquisicao (
 );
 
 
+-- Junção de todos os lotes requisitados (Requisita) em uma mesma Solicitacao_de_Aquisicao
+-- aprovada, formando o pacote físico que será transportado até o beneficiário.
+-- Entidade fraca de Solicitacao_de_Aquisicao (herda sua chave composta).
 CREATE TABLE Lote_de_Entrega (
     data_hora_aquisicao     TIMESTAMP       NOT NULL,
     beneficiario            VARCHAR(14)     NOT NULL,
@@ -514,6 +553,10 @@ CREATE TABLE Lote_de_Entrega (
 );
 
 
+-- Tabela associativa N:N entre Lote_de_Produto e Solicitacao_de_Aquisicao: registra
+-- quanto (porcao_lote) de um lote específico foi requisitado em uma solicitação.
+-- Uma solicitação pode requisitar porções de múltiplos lotes, desde que da mesma
+-- classificação (regra garantida pela aplicação, não pelo esquema).
 CREATE TABLE Requisita (
     data_hora_aquisicao     TIMESTAMP       NOT NULL,
     beneficiario            VARCHAR(14)     NOT NULL,
@@ -540,6 +583,7 @@ CREATE TABLE Requisita (
 CREATE INDEX idx_requisita_lote ON Requisita (lote);
 
 
+-- Atributo multivalorado de Conta_Bancaria: uma conta pode ter mais de um titular.
 CREATE TABLE Titular (
     id_conta                VARCHAR(15)     NOT NULL,
     nome_titular            VARCHAR(100)    NOT NULL,
@@ -553,6 +597,8 @@ CREATE TABLE Titular (
 );
 
 
+-- Agregação que registra cada doação financeira de um Filantropo para uma Conta_Bancaria
+-- da empresa; a chave própria (nota_fiscal) permite múltiplas doações do mesmo par.
 CREATE TABLE Doacao (
     nota_fiscal             VARCHAR(50)     NOT NULL,
     id_conta                VARCHAR(15)     NOT NULL,
@@ -572,9 +618,13 @@ CREATE TABLE Doacao (
 
 --------------------------------------------------------------------------------------------
 
-
 -- Especializações de Lote de Produto
+
 --------------------------------------------------------------------------------------------
+
+-- Especialização de Lote_de_Produto para lotes classificados 'CONSUMO HUMANO'.
+-- cep/nro/rua referenciam o Centro_Beneficiamento_Distribuicao onde está armazenado
+-- (nulo até o lote ser efetivamente recebido por um centro).
 CREATE TABLE Lote_Consumo_Humano (
     lote            VARCHAR(100)    NOT NULL,
     cep             VARCHAR(8),
@@ -594,6 +644,8 @@ CREATE TABLE Lote_Consumo_Humano (
         ON DELETE SET NULL
 );
 
+-- Especialização de Lote_de_Produto para lotes classificados 'CONSUMO ANIMAL'.
+-- cep/nro/rua referenciam o Armazem onde está armazenado (nulo até o recebimento).
 CREATE TABLE Lote_Consumo_Animal (
     lote            VARCHAR(100)    NOT NULL,
     cep             VARCHAR(8),
@@ -612,6 +664,8 @@ CREATE TABLE Lote_Consumo_Animal (
         ON DELETE SET NULL
 );
 
+-- Especialização de Lote_de_Produto para lotes classificados 'COMPOSTAGEM'.
+-- cep/nro/rua referenciam o Centro_Compostagem onde está armazenado (nulo até o recebimento).
 CREATE TABLE Lote_Compostagem (
     lote            VARCHAR(100)    NOT NULL,
     cep             VARCHAR(8),
@@ -629,4 +683,3 @@ CREATE TABLE Lote_Compostagem (
         FOREIGN KEY (cep, nro, rua) REFERENCES Centro_Compostagem(cep, nro, rua)
         ON DELETE SET NULL
 );
---------------------------------------------------------------------------------------------
