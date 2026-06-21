@@ -119,13 +119,24 @@ async function carregarResultados() {
       card.className = "card-lote";
       card.innerHTML = `
         <div class="lote-header">
-          <span class="lote-nome">${lote.produto} — Lote #${lote.id}</span>
-          <span class="badge ${badgeClass(lote.classificacao)}">${lote.classificacao}</span>
+        <span class="lote-nome"></span>
+        <span class="badge"></span>
         </div>
-        <p class="lote-meta">Produtor: ${lote.produtor} · ${lote.quantidade} kg · Val: ${lote.validade}</p>
-        <p class="lote-meta">Local: ${lote.localizacao}</p>
-      `;
-      lista.appendChild(card);
+        <p class="lote-meta" id="meta-produtor"></p>
+        <p class="lote-meta" id="meta-local"></p>
+        `;
+
+        // Injeta os dados dinâmicos do usuário usando textContent (imune a XSS)
+        card.querySelector(".lote-nome").textContent = `${lote.produto} — Lote #${lote.id}`;
+        
+        const badge = card.querySelector(".badge");
+        badge.textContent = lote.classificacao;
+        badge.className = `badge ${badgeClass(lote.classificacao)}`;
+
+        card.querySelector("#meta-produtor").textContent = `Produtor: ${lote.produtor} · ${lote.quantidade} kg · Val: ${lote.validade}`;
+        card.querySelector("#meta-local").textContent = `Local: ${lote.localizacao}`;
+        
+        lista.appendChild(card);
     });
   }
 
