@@ -1,5 +1,7 @@
+# Importação das bibliotecas
 import os
 
+# Definição das configurações do banco de dados
 DB_CONFIG = {
     "dbname": os.environ.get("DB_NAME", "banco_trabalho"),
     "user": os.environ.get("DB_USER", "postgres"),

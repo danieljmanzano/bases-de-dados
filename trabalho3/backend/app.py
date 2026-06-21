@@ -1,6 +1,6 @@
+# Importação das bibliotecas
 import re
 from datetime import datetime
-
 from flask import Flask, jsonify, request, send_from_directory
 from psycopg2 import errors
 
@@ -10,10 +10,9 @@ FRONTEND_DIR = "../frontend"
 
 app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path="")
 
-
+# A função verifca se os digitos são números
 def somente_digitos(valor):
     return re.sub(r"\D", "", valor or "")
-
 
 def data_br_para_iso(valor):
     """Converte 'dd/mm/aaaa' em 'aaaa-mm-dd'. Retorna None se vazio/invalido."""
@@ -21,7 +20,7 @@ def data_br_para_iso(valor):
         return None
     return datetime.strptime(valor, "%d/%m/%Y").strftime("%Y-%m-%d")
 
-
+# Definição das classificações do lotes
 CLASSIFICACOES_VALIDAS = {
     "Consumo humano": "CONSUMO HUMANO",
     "Consumo animal": "CONSUMO ANIMAL",
@@ -29,12 +28,12 @@ CLASSIFICACOES_VALIDAS = {
 }
 CLASSIFICACOES_EXIBICAO = {valor: chave for chave, valor in CLASSIFICACOES_VALIDAS.items()}
 
-
+# A função redireciona para a página inicial
 @app.get("/")
 def index():
     return send_from_directory(FRONTEND_DIR, "index.html")
 
-
+# A função retorna a lista de todos os produtos
 @app.get("/api/produtos")
 def listar_produtos():
     with get_cursor() as cursor:
@@ -42,7 +41,8 @@ def listar_produtos():
         produtos = cursor.fetchall()
     return jsonify(produtos)
 
-
+# A função realiza uma verificação no CPF informado e retorna as
+# informações do produtor, caso exista
 @app.get("/api/produtores")
 def buscar_produtor():
     cpf = somente_digitos(request.args.get("cpf", ""))
@@ -58,14 +58,19 @@ def buscar_produtor():
 
     return jsonify(produtor)
 
-
+# A função listar_lotes() realiza uma busca no banco de dados e retorna
+# uma lista com todos os lotes da classificação passada como parametro
+# da requisição
 @app.get("/api/lotes")
 def listar_lotes():
+
+    # Verificação da classificação
     classificacao = request.args.get("classificacao", "")
     classificacao_bd = CLASSIFICACOES_VALIDAS.get(classificacao)
     if not classificacao_bd:
         return jsonify({"erro": "Classificação inválida."}), 400
 
+    # Execução da query de busca
     with get_cursor() as cursor:
         cursor.execute(
             """
@@ -80,6 +85,7 @@ def listar_lotes():
         )
         lotes = cursor.fetchall()
 
+    # Formatando o nome da classificação e data 
     for lote in lotes:
         lote["classificacao"] = CLASSIFICACOES_EXIBICAO.get(lote["classificacao"], lote["classificacao"])
         if lote["validade"]:
@@ -87,22 +93,26 @@ def listar_lotes():
 
     return jsonify(lotes)
 
-
+# A função criar_lotes() faz um verificação dos campos, data, cpf
+# e insere um nova tupla na tabela de Lote de Produtos
 @app.post("/api/lotes")
 def criar_lote():
     dados = request.get_json(silent=True) or {}
 
+    # Verifica campos obrigatórios
     campos_obrigatorios = ["produto", "cpf", "quantidade", "data_colheita", "validade", "localizacao"]
     faltantes = [campo for campo in campos_obrigatorios if not dados.get(campo)]
     if faltantes:
         return jsonify({"erro": f"Campos obrigatórios faltando: {', '.join(faltantes)}"}), 400
 
+    # Formata as datas
     try:
         data_colheita = data_br_para_iso(dados["data_colheita"])
         validade = data_br_para_iso(dados["validade"])
     except ValueError:
         return jsonify({"erro": "Datas devem estar no formato dd/mm/aaaa."}), 400
 
+    # Verifica o CPF
     cpf = somente_digitos(dados["cpf"])
 
     try:
