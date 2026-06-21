@@ -1,4 +1,18 @@
--- Arquivo com o esquema do banco de dados
+-- Arquivo com o esquema do banco de dados (Parte 3 - item 1)
+
+-- ==============================================================================
+-- Convenções do esquema
+-- 
+--  Chaves estrangeiras (ON DELETE):
+--    - RESTRICT: Protege histórico físico, contábil e logístico (ex: Produto, Doacao)
+--    - CASCADE: Aplica-se a entidades fracas e tabelas associativas (ex: Solicitacao_de_Aquisicao)
+--    - SET NULL: Preserva transações ao desvincular responsáveis (ex: Funcionario)
+--
+--  Validações (CHECK):
+--    - Contatos: Validação de formato de e-mail (LIKE '%@%')
+--    - Capacidade/Ocupação: Valores numéricos; ocupação restrita ao limite da capacidade
+--    - Datas: Eventos seguintes ocorrem no mesmo instante ou após eventos anteriores
+-- ==============================================================================
 
 
 -- Limpeza do banco de dados (ordem de exclusão respeitando as FKs)
@@ -57,12 +71,12 @@ CREATE TABLE Produto (
 
 
 CREATE TABLE Produtor_Rural (
-    cpf                     VARCHAR(11)     NOT NULL, -- somente CPF, produtor rural é pessoa física
+    cpf                     VARCHAR(11)     NOT NULL, -- CPF: produtor rural é pessoa física
     cep                     VARCHAR(8)      NOT NULL,
     nro                     INT             NOT NULL,
     rua                     VARCHAR(100)    NOT NULL,
     complemento             VARCHAR(100),
-    contato                 VARCHAR(50)     NOT NULL, -- email
+    contato                 VARCHAR(50)     NOT NULL, -- Email
     nome                    VARCHAR(100)    NOT NULL,
     bool_compostagem        BOOLEAN DEFAULT FALSE,
     bool_consumo_animal     BOOLEAN DEFAULT FALSE,
@@ -78,10 +92,10 @@ CREATE TABLE Produtor_Rural (
         CHECK (CHAR_LENGTH(cep) = 8),
     
     CONSTRAINT ck_produtor_rural_nro 
-        CHECK (nro > 0), -- nro de endereço não pode ser negativo
+        CHECK (nro > 0), -- Nro de endereço não pode ser negativo
 
     CONSTRAINT ck_produtor_rural_contato
-        CHECK (contato LIKE '%@%') -- valida se tem '@' no email
+        CHECK (contato LIKE '%@%') -- Validação básica de formato de e-mail na base de dados. Validações de domínio devem ser feitas na aplicação
 );
 
 
@@ -115,7 +129,7 @@ CREATE TABLE Transportadora (
 
 
 CREATE TABLE Beneficiario (
-    cnpj                    VARCHAR(14)     NOT NULL, -- somente CNPJ, beneficiário é sempre uma organização (instituição, sítio, etc.)
+    cnpj                    VARCHAR(14)     NOT NULL, -- CNPJ: beneficiário é sempre uma organização (instituição, sítio etc.)
     cep                     VARCHAR(8)      NOT NULL,
     nro                     INT             NOT NULL,
     rua                     VARCHAR(100)    NOT NULL,
@@ -158,7 +172,7 @@ CREATE TABLE Beneficiario (
 
 
 CREATE TABLE Filantropo (
-    cpf         VARCHAR(11)     NOT NULL, -- somente CPF, filantropo é pessoa física
+    cpf         VARCHAR(11)     NOT NULL, -- CPF: filantropo é pessoa física
     contato     VARCHAR(50),
     nome        VARCHAR(100),
 
@@ -227,10 +241,10 @@ CREATE TABLE Centro_Beneficiamento_Distribuicao (
         PRIMARY KEY (cep, nro, rua),
 
     CONSTRAINT ck_centro_beneficiamento_capacidade 
-        CHECK (capacidade > 0), -- capacidade deve ser maior que 0
+        CHECK (capacidade > 0), -- Capacidade deve ser maior que 0
 
     CONSTRAINT ck_centro_beneficiamento_ocupacao 
-        CHECK (ocupacao >= 0 AND ocupacao <= capacidade), -- ocupacao deve estar entre 0 e capacidade
+        CHECK (ocupacao >= 0 AND ocupacao <= capacidade), -- Ocupação deve estar entre 0 e capacidade
 
     CONSTRAINT ck_centro_beneficiamento_contato
         CHECK (contato LIKE '%@%')
@@ -294,9 +308,9 @@ CREATE TABLE Funcionario (
     CONSTRAINT pk_funcionario 
         PRIMARY KEY (cpf),
 
-    CONSTRAINT fk_funcionario_conta -- para funcionários de finanças, esse campo referencia a conta
+    CONSTRAINT fk_funcionario_conta -- Para funcionários de finanças, esse campo referencia a conta
         FOREIGN KEY (id_conta) REFERENCES Conta_Bancaria(id_conta)
-        ON DELETE SET NULL, -- o funcionário é mantido sem conta
+        ON DELETE SET NULL, -- O funcionário é mantido sem conta caso ela seja removida
 
     CONSTRAINT ck_funcionario_cpf_len 
         CHECK (CHAR_LENGTH(cpf) = 11)
@@ -321,18 +335,19 @@ CREATE TABLE Transporte (
 
     CONSTRAINT fk_transporte_transportadora 
         FOREIGN KEY (transportadora) REFERENCES Transportadora(cnpj)
-        ON DELETE RESTRICT, -- deve haver um tratamento específico sobre transportes registrados cuja transportadora tenha sido removida
+        ON DELETE RESTRICT, -- Protege o histórico logístico
+                            -- Deve haver um tratamento específico sobre transportes registrados cuja transportadora tenha sido removida
 
     CONSTRAINT fk_transporte_funcionario 
         FOREIGN KEY (responsavel_distribuicao) REFERENCES Funcionario(cpf)
-        ON DELETE SET NULL,
+        ON DELETE SET NULL, -- A saída/remoção do funcionário desvincula o responsável, mas preserva o registro da operação de frete
 
     CONSTRAINT fk_transporte_conta 
         FOREIGN KEY (conta_pagamento) REFERENCES Conta_Bancaria(id_conta)
         ON DELETE SET NULL,
 
     CONSTRAINT ck_transporte_data 
-        CHECK (data_entrega >= data_hora_coleta),
+        CHECK (data_entrega >= data_hora_coleta), -- A entrega deve ocorrer após ou no momento da coleta
 
     CONSTRAINT ck_transporte_custo 
         CHECK (custo >= 0),
@@ -357,9 +372,10 @@ CREATE TABLE Lote_de_Produto (
     custo_producao              DECIMAL(10, 2),
     data_colheita               DATE,
     validade                    DATE,
-    quantidade                  DECIMAL(10, 2), -- quantidade em kg ou unidades, dependendo do tipo do produto
+    quantidade                  DECIMAL(10, 2), -- Quantidade em kg ou unidades, dependendo do tipo do produto 
+    -- TODO: verificar emcima como é a definição de quantidade
     classificacao               VARCHAR(50),
-    localizacao                 VARCHAR(255), -- isso seria como um gps sobre o lote
+    localizacao                 VARCHAR(255), -- GPS
     placa_veiculo               VARCHAR(10),
     data_hora_coleta            TIMESTAMP,
     conta_bancaria              VARCHAR(15),
@@ -374,11 +390,11 @@ CREATE TABLE Lote_de_Produto (
 
     CONSTRAINT fk_lote_produto_produto 
         FOREIGN KEY (produto) REFERENCES Produto(nome)
-        ON DELETE RESTRICT, -- deve haver um tratamento específico sobre lotes registrados cujo produto tenha sido removido
+        ON DELETE RESTRICT, -- A definição do produto não pode ser apagada se existirem lotes registrados no sistema
 
     CONSTRAINT fk_lote_produto_produtor 
         FOREIGN KEY (produtor) REFERENCES Produtor_Rural(cpf)
-        ON DELETE RESTRICT, -- deve haver um tratamento específico sobre lotes registrados cujo produtor tenha sido removido
+        ON DELETE RESTRICT, -- Impede a remoção do produtor se houver histórico de excedentes fornecidos por ele
 
     CONSTRAINT fk_lote_produto_conta 
         FOREIGN KEY (conta_bancaria) REFERENCES Conta_Bancaria(id_conta)
@@ -386,7 +402,7 @@ CREATE TABLE Lote_de_Produto (
 
     CONSTRAINT fk_lote_produto_transporte 
         FOREIGN KEY (placa_veiculo, data_hora_coleta) REFERENCES Transporte(placa_veiculo, data_hora_coleta)
-        ON DELETE SET NULL,
+        ON DELETE SET NULL, 
 
     CONSTRAINT fk_lote_produto_funcionario 
         FOREIGN KEY (responsavel_classificacao) REFERENCES Funcionario(cpf)
@@ -431,7 +447,7 @@ CREATE TABLE Solicitacao_de_Aquisicao (
 
     CONSTRAINT fk_solicitacao_beneficiario 
         FOREIGN KEY (beneficiario) REFERENCES Beneficiario(cnpj)
-        ON DELETE CASCADE, -- por ser uma entidade fraca de beneficiário, deve ser apagada caso o beneficiário seja removido
+        ON DELETE CASCADE, -- Por ser uma entidade fraca de beneficiário, deve ser apagada caso o beneficiário seja removido
 
     CONSTRAINT fk_solicitacao_funcionario 
         FOREIGN KEY (responsavel_regularizacao) REFERENCES Funcionario(cpf) 
@@ -469,7 +485,7 @@ CREATE TABLE Lote_de_Entrega (
 
     CONSTRAINT fk_lote_entrega_solicitacao 
         FOREIGN KEY (data_hora_aquisicao, beneficiario) REFERENCES Solicitacao_de_Aquisicao(data_hora, beneficiario) 
-        ON DELETE CASCADE, -- por ser uma entidade fraca de solicitação, deve ser apagada caso a solicitação seja removida
+        ON DELETE CASCADE, -- Por ser uma entidade fraca de solicitação, deve ser apagada caso a solicitação seja removida
 
     CONSTRAINT fk_lote_entrega_conta 
         FOREIGN KEY (conta_pagamento) REFERENCES Conta_Bancaria(id_conta) 
@@ -502,18 +518,18 @@ CREATE TABLE Requisita (
     data_hora_aquisicao     TIMESTAMP       NOT NULL,
     beneficiario            VARCHAR(14)     NOT NULL,
     lote                    VARCHAR(100)    NOT NULL,
-    porcao_lote             DECIMAL(10, 2)  NOT NULL, -- quantidade requisitada em kg ou unidades
+    porcao_lote             DECIMAL(10, 2)  NOT NULL, -- Quantidade requisitada em kg ou unidades
 
     CONSTRAINT pk_requisita 
         PRIMARY KEY (data_hora_aquisicao, beneficiario, lote),
 
     CONSTRAINT fk_requisita_solicitacao 
         FOREIGN KEY (data_hora_aquisicao, beneficiario) REFERENCES Solicitacao_de_Aquisicao(data_hora, beneficiario) 
-        ON DELETE CASCADE, -- deve ser apagada caso a solicitação seja removida
+        ON DELETE CASCADE, -- Deve ser apagada caso a solicitação seja removida
 
     CONSTRAINT fk_requisita_lote 
         FOREIGN KEY (lote) REFERENCES Lote_de_Produto(id_lote) 
-        ON DELETE RESTRICT,
+        ON DELETE RESTRICT, -- Impede a exclusão de um lote físico que já faz parte de um pedido/transação ativa ou finalizada
 
     CONSTRAINT ck_requisita_porcao
         CHECK (porcao_lote > 0)
@@ -533,7 +549,7 @@ CREATE TABLE Titular (
 
     CONSTRAINT fk_titular_conta 
         FOREIGN KEY (id_conta) REFERENCES Conta_Bancaria(id_conta) 
-        ON DELETE CASCADE -- por ser uma tabela de atributo multivalorado, deve ser apagada caso a conta seja removida
+        ON DELETE CASCADE -- Por ser uma tabela de atributo multivalorado, deve ser apagada caso a conta seja removida
 );
 
 
@@ -570,8 +586,8 @@ CREATE TABLE Lote_Consumo_Humano (
 
     CONSTRAINT fk_lote_consumo_humano_lote
         FOREIGN KEY (lote) REFERENCES Lote_de_Produto(id_lote)
-        ON DELETE CASCADE, -- por ser uma tabela de especialização, deve ser apagada caso o lote de produto seja removido
-                           -- o mesmo vale para as demais tabelas de especialização de lote de produto
+        ON DELETE CASCADE, -- Por ser uma tabela de especialização, deve ser apagada caso o lote de produto seja removido
+                           -- O mesmo vale para as demais tabelas de especialização de lote de produto
 
     CONSTRAINT fk_lote_consumo_humano_centro
         FOREIGN KEY (cep, nro, rua) REFERENCES Centro_Beneficiamento_Distribuicao(cep, nro, rua)
