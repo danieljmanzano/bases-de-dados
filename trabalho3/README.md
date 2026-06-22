@@ -81,9 +81,9 @@ O arquivo `database/consultas.sql` contém 6 consultas diversificadas, conforme 
 1. **GROUP BY + JOIN** — Quantidade total adquirida e cadastrada por produto em um determinado mês
 2. **JOIN de múltiplas tabelas** — Beneficiários que adquiriram um lote específico (somente solicitações aprovadas)
 3. **Divisão relacional** _(obrigatória)_ — Beneficiários que requisitaram todos os lotes de uma determinada classificação
-4. **Subconsulta correlacionada** — Lotes cujo custo de produção supera a média do respectivo produtor
-5. **Subconsulta não correlacionada** — Beneficiários que nunca registraram solicitações
-6. **Junção externa (LEFT JOIN)** — Todos os produtores com a quantidade total de lotes cadastrados (incluindo produtores sem lotes)
+4. **Subconsulta correlacionada** — Lotes cujo preço por unidade supera a média do respectivo produtor
+5. **Subconsulta não correlacionada** — Beneficiários com volume de requisição acima da média geral
+6. **Junção externa (LEFT JOIN)** — Todos os produtores com a quantidade de lotes registrados e o volume total cadastrado nesses lotes (incluindo produtores sem lotes)
 
 ---
 

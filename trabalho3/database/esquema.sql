@@ -406,7 +406,7 @@ CREATE TABLE Lote_de_Produto (
     custo_producao              DECIMAL(10, 2),
     data_colheita               DATE,
     validade                    DATE,
-    quantidade                  DECIMAL(10, 2), -- Quantidade em kg ou unidades, dependendo do tipo do produto
+    quantidade                  DECIMAL(10, 2), -- Quantidade em kg
     classificacao               VARCHAR(50),
     localizacao                 VARCHAR(255), -- GPS
     placa_veiculo               VARCHAR(10),
@@ -561,7 +561,7 @@ CREATE TABLE Requisita (
     data_hora_aquisicao     TIMESTAMP       NOT NULL,
     beneficiario            VARCHAR(14)     NOT NULL,
     lote                    VARCHAR(100)    NOT NULL,
-    porcao_lote             DECIMAL(10, 2)  NOT NULL, -- Quantidade requisitada em kg ou unidades
+    porcao_lote             DECIMAL(10, 2)  NOT NULL, -- Quantidade requisitada em kg
 
     CONSTRAINT pk_requisita 
         PRIMARY KEY (data_hora_aquisicao, beneficiario, lote),
